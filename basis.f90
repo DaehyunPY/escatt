@@ -33,6 +33,7 @@ end subroutine diag
 
 
 subroutine correct(num, ty)
+    use hamiltonian, only: dr 
     character(30), parameter :: form_out = '(1A15, 1I15, 1ES15.3)'
     integer  (I4), intent(in)  :: num 
     integer  (I1), intent(out) :: ty   
@@ -64,6 +65,7 @@ end subroutine correct
 
 
 subroutine stnad
+    use hamiltonian, only: dr 
     real   (QP) :: sum 
     integer(I4) :: i, j 
 
@@ -92,7 +94,7 @@ end subroutine stnad
 
 
 subroutine PROC_H(l) 
-    use hamiltonian, only: coord_r, nabla_x, Poten
+    use hamiltonian, only: dr, coord_r, nabla_x, Poten
     character(30), parameter  :: form_out = '(1A15, 10F10.3)'
     integer  (I4), intent(in) :: l 
     real     (DP) :: sign, tmp 
@@ -150,21 +152,40 @@ subroutine PROC_H(l)
     deallocate(tmp_H, tmp_E)
 
 !     call stnad
-    write(file_log, form_out) "Energy: ", (E(i), i = 1, 10)
+    write(file_log, form_out) "Energy: ", (E(i), i = 1, 5)
 end subroutine PROC_H
 
 
-subroutine PROC_basis_plot 
+subroutine PROC_basis_plot(num)
     use hamiltonian, only: coord_r
-    integer  (I1), parameter :: file_psi = 101,           file_ene = 102
-    character(30), parameter :: form_psi = '(30ES25.10)', form_ene = '(1I5, 1ES25.10)'
+    integer  (I1), parameter  :: file_psi = 101,           file_ene = 102
+    character(30), parameter  :: form_psi = '(30ES25.10)', form_ene = '(1I5, 1ES25.10)'
+    integer  (I4), intent(in) :: num 
     integer  (I4) :: i, j 
+    character :: ch1*1, ch2*2, ch3*3, ch4*4
 
-    open(file_psi, file = "output/basis_psi.d")
-    open(file_ene, file = "output/basis_energy.d")
+    if(L >= 0 .and. L < 10) then 
+        write(ch1, '(I1.1)') num 
+        open(file_psi, file = "output/basis_u_"//ch1//".d")
+        open(file_ene, file = "output/basis_energy_"//ch1//".d")
+    else if(L >= 10 .and. L < 100) then 
+        write(ch2, '(I2.2)') num 
+        open(file_psi, file = "output/basis_u_"//ch2//".d")
+        open(file_ene, file = "output/basis_energy_"//ch2//".d")
+    else if(L >= 100 .and. L < 1000) then 
+        write(ch3, '(I3.3)') num 
+        open(file_psi, file = "output/basis_u_"//ch3//".d")
+        open(file_ene, file = "output/basis_energy_"//ch3//".d")
+    else if(L >= 1000 .and. L < 10000) then 
+        write(ch4, '(I4.4)') num 
+        open(file_psi, file = "output/basis_u_"//ch4//".d")
+        open(file_ene, file = "output/basis_energy_"//ch4//".d")
+    end if 
+
+
     write(file_psi, form_psi) 0.d0, 0.d0, 0.d0, 0.d0, 0.d0, 0.d0
     do i = 1, N 
-        write(file_psi, form_psi) coord_r(i), (H(j, i), j = 1, 5), H(N, i)
+        write(file_psi, form_psi) coord_r(i), (H(j, i), j = 1, 5)
         write(file_ene, form_ene) i, E(i) 
     end do 
     close(file_psi)

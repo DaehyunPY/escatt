@@ -2,33 +2,33 @@
 PARTICLE
 ============================================================
  -------------------------------------------  ------.------
- MASS                                   [au]      1.0
- KINETIC ENERGY                         [eV]      3.0 
+ MASS                                   [au]       1.0
+ KINETIC ENERGY                         [eV]       3.0 
  -
  -
 ============================================================
 POTENTIAL
 ============================================================
  -------------------------------------------  ------.------
- TYPE                                    [1]      10
- ELEMENT NUMBER                          [1]      10.
+ TYPE                                 [TYPE]       1
+ ELEMENT NUMBER                          [1]       1.
  POLARIZABILITY                         [au]       2.68 
  CUTOFF                                 [au]       1.76 
- [TYPE   I  ] COULOMB
- [TYPE  II-1] GELTMAN
+ [TYPE 1] COULOMB
+ [TYPE 2] GELTMAN
     COEFFICIENT z0                      [au]      1.07
     COEFFICIENT z1                      [au]      1.07
     COEFFICIENT z2                      [au]      1.
- [TYPE  II-2] GREEN & YUKAWA
+ [TYPE 3] GREEN & YUKAWA
     COEFFICIENT D                       [au]      0.5 
     COEFFICIENT H                       [au]     -1
     COEFFICIENT delta                   [au]     -1
- [TYPE  II-3] KYLSTRA & BUCKINGHAM
+ [TYPE 4] KYLSTRA & BUCKINGHAM
     COEFFICIENT A                       [au]      2.60505
     COEFFICIENT B                       [au]      2.08144
     COEFFICIENT alpha                   [au]      1.41
     COEFFICIENT beta                    [au]      2.61 
- [TYPE III  ] CHEN & NOUS 
+ [TYPE 5] CHEN & NOUS 
     COEFFICIENT alpha1                  [au]      3.04  
     COEFFICIENT alpha2                  [au]     10.62  
     COEFFICIENT alpha3                  [au]      1.83  
@@ -38,10 +38,29 @@ POTENTIAL
 CALCULATION
 ============================================================
  -------------------------------------------  ------.------
- BOUNDARY SIZE                           [1]      20.0
+ BOUNDARY SIZE                          [au]      20.0
  GRID NUMBER OF r COORDINATES            [1]    1000
- LIMITATION OF QUANTUM NUMBER L          [1]      20 
- PLOT NUMBER OF r COORDINATES            [1]     100
- PLOT NUMBER OF theta COORDINATES        [1]     100
+ GRID NUMBER OF Energy COORDINATES       [1]    1000
+ MAXIUM OF QUANTUM NUMBER L              [1]      20 
+ 3D PLOT NUMBER OF r COORDINATES         [1]     200 
+ 3D PLOT NUMBER OF theta COORDINATES     [1]     200 
+ -
+ -
+============================================================
+OPTION
+============================================================
+ -------------------------------------------  ------.------
+ [OUTPUT FILE]
+    POTENTIAL FUNCTION                 [Y/N]       YES
+    BASIS FUNCTION                     [Y/N]       YES 
+    CROSS SECTION FUNCTION             [Y/N]       YES 
+    INNER REGION WAVE FUNCTION         [Y/N]       NO 
+    OUTER REGION WAVE FUNCTION         [Y/N]       NO
+ [SPECIAL CALCULATION]
+    COUTION: OUTPUT FILE option would be invalid. 
+    COUTION: KINETIC ENERGY value would be maxium one. 
+    KINETIC ENERGY vs CROSS SECTION    [Y/N]       NO  
+    KINETIC ENERGY vs PHASE            [Y/N]       NO 
+    KINETIC ENERGY vs LIFETIME         [Y/N]       NO 
  -
  -

@@ -6,20 +6,6 @@ module inner
 contains 
     
 
-! subroutine inner_coeff(l)
-!     use math_const, only: i => math_i 
-!     integer(I4), intent(in) :: l 
-!     real   (DP) :: ka, tmp2 
-!     complex(DP) :: tmp1 
-!     integer(I4) :: j
-
-!     ka   = (2.d0*Mass*Kinet)**0.5d0*ra
-!     tmp1 = A(l)*(bessel_jn(l, ka) -K(l)*bessel_yn(l, ka))
-!     do j = 1, N 
-!         tmp2       = H(j, N)/(2.d0*Mass*(E(j) -Kinet))
-!         inner_a(j) = tmp1*tmp2/R(l)
-!     end do     
-! end subroutine inner_coeff
 subroutine inner_coeff(l)
     use math_const, only: i => math_i 
     use nr, only: sphbes_s
@@ -80,7 +66,7 @@ subroutine PROC_inner_plot ! It must be called after PROC_input, PROC_H, PROC_bo
     complex  (QP) :: sum 
     integer  (I4) :: i, j, k 
 
-    open(file_psi1, file = "output/inner_u0.d")
+    open(file_psi1, file = "output/inner_u_0.d")
     sum = 0.d0 
     do i = 1, N
         sum = inner_u(0, i)

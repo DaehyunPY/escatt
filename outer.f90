@@ -20,15 +20,6 @@ subroutine mat_f
 end subroutine mat_f 
 
 
-! function outer_u(l, r)
-!     integer(I4), intent(in) :: l 
-!     real   (DP), intent(in) :: r 
-!     real   (DP) :: kr
-!     complex(DP) :: outer_u
-
-!     kr      = (2.d0*Mass*Kinet)**0.5d0*r
-!     outer_u = A(l)*(bessel_jn(l, kr) -K(l)*bessel_yn(l, kr))*r 
-! end function outer_u
 function outer_u(l, r)
     use nr, only: sphbes_s
     integer(I4), intent(in) :: l 
@@ -54,6 +45,31 @@ end function outer_u
 ! ==================================================
 ! PROCESS
 ! ==================================================
+
+
+subroutine PROC_CS_achive(j)
+    use math_const, only: pi => math_pi
+    character(30), parameter  :: form_out = '(1A15, 5X, 1ES25.10)'
+    integer  (I4), intent(in) :: j 
+    real     (DP) :: k 
+    complex  (QP) :: sum 
+    complex  (DP) :: tmp 
+    integer  (I4) :: i
+
+    allocate(outer_f(0:L))
+    call mat_f 
+
+    sum = 0.d0 
+    k   = (2.d0*Mass*Kinet)**0.50
+    do i = 0, L 
+        tmp = 4.d0*pi/k*outer_f(i)
+        sum = sum +tmp 
+    end do 
+    tmp   = sum 
+    CS(j) = aimag(tmp)
+    write(file_log, form_out) "total sigma: ", aimag(tmp)
+    deallocate(outer_f)
+end subroutine PROC_CS_achive
 
 
 subroutine PROC_CS_plot 
@@ -115,7 +131,7 @@ subroutine PROC_outer_plot
     complex  (QP) :: sum 
     integer  (I4) :: i, j, k 
 
-    open(file_psi1, file = "output/outer_u0.d")
+    open(file_psi1, file = "output/outer_u_0.d")
     sum = 0.d0 
     do i = N +1, 2*N
         sum = outer_u(0, coord_r(i))
@@ -137,4 +153,20 @@ subroutine PROC_outer_plot
     end do 
     close(file_psi2)
 end subroutine PROC_outer_plot
+
+
+subroutine PROC_E_vs_CS_plot
+    use unit_const,  only: other_e_eV, au_hartree
+    use hamiltonian, only: coord_E 
+    integer  (I1), parameter :: file_cs  = 101
+    character(30), parameter :: form_cs  = '(30ES25.10)'
+    real     (DP), parameter :: au_to_eV = au_hartree/other_e_ev
+    integer  (I4) :: j 
+
+    open(file_cs, file = "output/energy_vs_cs.d")
+    do j = 1, M 
+        write(file_cs, form_cs) coord_E(j)*au_to_eV, CS(j) 
+    end do 
+    close(file_cs)
+end subroutine PROC_E_vs_CS_plot
 end module outer
