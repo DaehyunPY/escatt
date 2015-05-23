@@ -52,8 +52,26 @@ function nabla_x(int_i, int_j)
     if(mod(int_i +int_j, 2) == 0) then 
         nabla_x = -nabla_x
     end if 
-!        *(-1.d0)**(i -j +1.d0)
 end function nabla_x
+! function nabla_x(int_i, int_j)
+!     use math_const, only: pi => math_pi 
+!     integer(I4), intent(in) :: int_i, int_j
+!     real   (DP) :: nabla_x, i, j
+
+!     i = dble(int_i)
+!     j = dble(int_j)
+!     if(int_i /= int_j) then 
+!         nabla_x = &
+!             2_dp/(i -j)**2_dp -2_dp/(i +j)**2_dp 
+!     else
+!         nabla_x = &
+!             pi**2_dp/3_dp -1_dp/2_dp*i**2_dp 
+!     end if
+!     nabla_x = nabla_x/dr**2.d0
+!     if(mod(int_i +int_j, 2) == 0) then 
+!         nabla_x = -nabla_x
+!     end if 
+! end function nabla_x
 
 
 function Poten(r) 

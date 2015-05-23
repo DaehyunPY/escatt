@@ -39,9 +39,9 @@ CALCULATION
 ============================================================
  -------------------------------------------  ------.------
  BOUNDARY SIZE                          [au]      20.0
- GRID NUMBER OF r COORDINATES            [1]    1000
+ GRID NUMBER OF r COORDINATES            [1]     100 
  GRID NUMBER OF Energy COORDINATES       [1]    1000
- MAXIUM OF QUANTUM NUMBER L              [1]      20 
+ MAXIUM OF QUANTUM NUMBER L              [1]       0
  3D PLOT NUMBER OF r COORDINATES         [1]     200 
  3D PLOT NUMBER OF theta COORDINATES     [1]     200 
  -
@@ -55,8 +55,8 @@ OPTION
     USE ENERGY UNIT eV                 [Y/N]       NO 
     USE degree INSTEAD OF radian       [Y/N]       YES 
  [OUTPUT FILE]
-    POTENTIAL FUNCTION                 [Y/N]       YES
-    BASIS FUNCTION                     [Y/N]       YES 
+    POTENTIAL FUNCTION                 [Y/N]       NO 
+    BASIS FUNCTION                     [Y/N]       YES  
     CROSS SECTION FUNCTION             [Y/N]       YES 
     INNER REGION WAVE FUNCTION         [Y/N]       NO 
     OUTER REGION WAVE FUNCTION         [Y/N]       NO

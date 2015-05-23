@@ -81,7 +81,7 @@ subroutine stnad
     integer(i4) :: i, j 
 
     do j = 1, N
-        sum = 0_dp 
+        sum = 0.d0 
         do i = 1, N 
             sum = sum +H(j, i)*H(j, i)*dr
         end do 
@@ -109,22 +109,20 @@ subroutine PROC_H(l)
     character(30), parameter  :: form_out = '(1A15, 10F10.3)'
     integer  (i4), intent(in) :: l 
     real     (dp) :: sign, tmp 
-    integer  (i4) :: i, j, u, v 
+    integer  (i4) :: i, j, k
 
     allocate(tmp_H(1:N, 1:N), tmp_E(1:N))
-    tmp_H(:, :) = 0_dp
+    tmp_H(:, :) = 0.d0 
     do j = 1, 2*N
-        v = j 
-        if(j > N) v = 2*N +1 -j 
-        do i = 1, v  
-            u = i 
-            if(i > N) u = N 
-            tmp = -1_dp/(2_dp*Mass)*nabla_x(i, j) 
-            tmp_H(u, v) = tmp_H(u, v) +tmp 
+        do i = 1, N             
+            k   = j 
+            tmp = -1.d0/(2.d0*Mass)*nabla_x(i, j) 
+            if(j > N) k = 2*N +1 -j 
+            tmp_H(i, k) = tmp_H(i, k) +tmp 
         enddo
     enddo
     do i = 1, N 
-        tmp         = 1_dp/(2_dp*Mass)*dble(l)*(dble(l) +1_dp)/coord_r(i)**2_dp & ! azimuthal quantum term
+        tmp         = 1.d0/(2.d0*Mass)*dble(l)*(dble(l) +1.d0)/coord_r(i)**2.d0 & ! azimuthal quantum term
                         +Poten(coord_r(i))                                        ! potential term
         tmp_H(i, i) = tmp_H(i, i) +tmp 
     enddo
@@ -136,7 +134,7 @@ subroutine PROC_H(l)
     E(:)    = 0_dp 
     sign    = 1_dp 
     do j = 1, N 
-        if(tmp_H(1, j) > 0_dp) then 
+        if(tmp_H(1, j) > 0.d0) then 
             sign = 1_dp 
         else 
             sign = -1_dp
@@ -178,7 +176,7 @@ subroutine PROC_basis_plot(num)
     end if 
 
 
-    write(file_psi, form_psi) 0_dp, 0_dp, 0_dp, 0_dp, 0_dp, 0_dp
+    write(file_psi, form_psi) 0.d0, 0.d0, 0.d0, 0.d0, 0.d0, 0.d0
     do i = 1, N 
         write(file_psi, form_psi) coord_r(i), (H(j, i), j = 1, 5)
 !         write(file_psi, form_psi) coord_r(i), (H(j, i), j = n, n -4, -1) ! for test 
