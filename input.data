@@ -3,7 +3,7 @@ PARTICLE
 ============================================================
  -------------------------------------------  ------.------
  MASS                                   [au]       1.0
- KINETIC ENERGY                         [eV]       3.0 
+ KINETIC ENERGY                      [au/eV]       3.0 
  -
  -
 ============================================================
@@ -50,6 +50,10 @@ CALCULATION
 OPTION
 ============================================================
  -------------------------------------------  ------.------
+ [UNIT]
+    COUTION: Default unit system is a.u. 
+    USE ENERGY UNIT eV                 [Y/N]       NO 
+    USE degree INSTEAD OF radian       [Y/N]       YES 
  [OUTPUT FILE]
     POTENTIAL FUNCTION                 [Y/N]       YES
     BASIS FUNCTION                     [Y/N]       YES 

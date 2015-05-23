@@ -117,9 +117,11 @@ subroutine PROC_input
         form_p4    = '( 9/, 4(45X, 1F15.8, /),  5/)', &
         form_p5    = '(14/, 3(45X, 1F15.8, /),   /)'
     character(60), parameter :: &
-        form_cal   = '(4/, 1(45X, 1F15.8, /), 5(45X, 1I15, /), /)', & 
-        form_opt   = '(5/, 5(45X, 6X, 1A1, /), 3/, 3(45X, 6X, 1A1, /))'
+        form_cal   = '(4/, 1(45X, 1F15.8, /), 5(45X, 1I15, /), /)'
+    character(90), parameter :: &
+        form_opt   = '(6/, 2(45X, 6X, 1A1, /), /, 5(45X, 6X, 1A1, /), 3/, 3(45X, 6X, 1A1, /))'
     real     (DP), parameter :: eV_to_au = other_e_ev/au_hartree
+    real     (DP) :: unit_e
 
     open(file_input, file = "input.d")
     read(file_input, form_part)  Mass, Kinet
@@ -148,12 +150,15 @@ subroutine PROC_input
         stop "SUBROUTINE PROC_input: Check potential type."
     end if 
     read (file_input, form_cal) ra, N, M, L, pr, ptheta
-    read (file_input, form_opt) op_poten, op_basis, op_dcs, op_inner, op_outer, op_tcs, op_phase, op_lt 
+    read (file_input, form_opt) op_ev, op_degree, op_poten, op_basis, op_dcs, op_inner, op_outer, op_tcs, op_phase, op_lt 
     close(file_input) 
     open (file_log, file = "output/log.d")
 
+    unit_e = 1_dp 
+    if(op_ev == "Y") unit_e = eV_to_au
+    
     if(pr > N) pr = N 
-    Kinet  = Kinet*eV_to_au
+    Kinet  = Kinet*unit_e
     dr     = ra/dble(N) 
     dtheta = pi/dble(ptheta)
     dE     = Kinet/dble(M) 
@@ -161,12 +166,12 @@ subroutine PROC_input
     allocate(H(1:N, 1:N), E(1:N))
     allocate(R(0:L), K(0:L), S(0:L), A(0:L))
     allocate(inner_u(0:L, 1:N)) 
-    H(:, :)       = 0.d0
-    E(:)          = 0.d0
-    R(:)          = 0.d0
-    K(:)          = 0.d0
-    S(:)          = 0.d0
-    inner_u(:, :) = 0.d0
+    H(:, :)       = 0_dp
+    E(:)          = 0_dp
+    R(:)          = 0_dp
+    K(:)          = 0_dp
+    S(:)          = 0_dp
+    inner_u(:, :) = 0_dp
 
     if(op_tcs == "Y" .or. op_phase == "Y" .or. op_lt == "Y") then 
         op_basis = "N"
@@ -188,14 +193,14 @@ subroutine PROC_inform
     use unit_const, only: other_e_eV, au_hartree
     character(30), parameter :: form_out = '(1A15, 1ES15.3)'
     real     (DP), parameter :: au_to_eV = au_hartree/other_e_ev
-
+    
     write(file_log, *) "================================================================="
     write(file_log, *) "PARTICLE: ELECTRON"
     write(file_log, *) "================================================================="
     write(file_log, *) " -------------------------------------------  ------------------ "
     write(file_log, *) " MASS                                   [au] ", Mass 
     write(file_log, *) " KINETIC ENERGY                         [au] ", Kinet
-    write(file_log, *) " KINETIC ENERGY                         [eV] ", Kinet*au_to_eV
+    write(file_log, *) "                                        [eV] ", Kinet*au_to_eV
     write(file_log, *) " - "
     write(file_log, *) " - "
 
@@ -261,6 +266,16 @@ subroutine PROC_inform
         write(file_log, *) " - "
         write(file_log, *) " - "
     end if 
+
+    write(file_log, *) "================================================================="
+    write(file_log, *) "UNIT"
+    write(file_log, *) "================================================================="
+    write(file_log, *) " -------------------------------------------  ------------------ "
+    write(file_log, *) " DEFAULT                                               au        "
+    if(op_ev     == "Y") write(file_log, *) " ENERGY                                                eV        "
+    if(op_degree == "Y") write(file_log, *) " ANGULAR                                           degree        "
+    write(file_log, *) " - "
+    write(file_log, *) " - "
 
     write(file_log, *) "================================================================="
     write(file_log, *) "CALCULATION"

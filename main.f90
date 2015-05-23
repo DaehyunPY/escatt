@@ -19,7 +19,10 @@ program main
     write(file_log, *) "[PROCESS INPUT]"
     write(file_log, *) 
         call PROC_inform
-        if(op_poten == "Y") call PROC_Poten_plot 
+        if(op_poten == "Y") then 
+            call PROC_Poten_plot 
+            write(file_log, *) "Potential function is ploted."
+        end if 
         write(file_log, *) 
     call cpu_time(t2)
     write(file_log, form_out) "PROCESS RUNNING TIME: ", t2 -t1 
@@ -38,7 +41,7 @@ program main
         Kinet = coord_E(j)
         do i = 0, L 
             call cpu_time(t1)
-                write(file_log, *) "ROUND", i, j 
+                write(file_log, *) "ROUND", i, coord_E(j)
                 call PROC_H(i) 
                 if(op_basis == "Y") call PROC_basis_plot(i)
                 call PROC_boundary_mat(i) 
@@ -47,6 +50,7 @@ program main
             write(file_log, form_out) "RUNNING TIME: ", t2 -t1
             write(file_log, *) 
         end do 
+        if(op_basis == "Y") write(file_log, *) "Basis function is ploted."
         if(M /= 1) call PROC_CS_achive(j)
         write(file_log, *)
     end do 
@@ -63,10 +67,22 @@ program main
     write(*, *) "Ploting..."
     write(file_log, *) "[PROCESS PLOT]"
     write(file_log, *) 
-        if(op_dcs   == "Y") call PROC_CS_plot 
-        if(op_inner == "Y") call PROC_inner_plot
-        if(op_outer == "Y") call PROC_outer_plot 
-        if(op_tcs   == "Y") call PROC_E_vs_CS_plot
+        if(op_dcs   == "Y") then 
+            call PROC_CS_plot 
+            write(file_log, *) "Cross Section function is ploted."
+        end if 
+        if(op_inner == "Y") then 
+            call PROC_inner_plot
+            write(file_log, *) "Inner region function is ploted."
+        end if 
+        if(op_outer == "Y") then 
+            call PROC_outer_plot 
+            write(file_log, *) "Outer region function is ploted."
+        end if 
+        if(op_tcs   == "Y") then 
+            call PROC_E_vs_CS_plot
+            write(file_log, *) "Energy vs Cross Section function is ploted."
+        end if
 !         if(op_phase == "Y") 
 !         if(op_lt    == "Y")
         write(file_log, *)
