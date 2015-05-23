@@ -1,7 +1,7 @@
 module basis
     use global 
     implicit none
-    real(8), save, allocatable :: tmp_H(:, :), tmp_E(:)
+    real(8), save, allocatable, protected :: tmp_H(:, :), tmp_E(:)
 contains
 
 
@@ -50,11 +50,12 @@ end subroutine diag
 
 
 subroutine correct(num, ty)
+    character(30), parameter :: form_out = '(1A15, 1I15, 1ES15.3)'
     integer, intent(in)  :: num 
     integer, intent(out) :: ty   
     real(8)  :: tmp, sign, c1, c2     
     real(16) :: sum 
-    integer  :: i, j 
+    integer  :: i, j
 
     sum = 0.d0 
     do i = 1, N 
@@ -63,7 +64,7 @@ subroutine correct(num, ty)
         sum = sum +tmp*tmp*dr 
     end do 
     if(sum < 1.d-20) ty = 0 
-    write(*, *) "correct: ", num, dble(sum)
+    write(*, form_out) "correct: ", num, dble(sum) 
 
     if(tmp_H(1, 2*num -1)*tmp_H(1, 2*num) > 0.d0) then 
         sign = 1.d0 
@@ -92,7 +93,6 @@ subroutine stnad
         H(j, :) = H(j, :)/sum**0.5d0 
     end do  
 end subroutine stnad
-end module basis
 
 
 
@@ -103,20 +103,19 @@ end module basis
 
 
 
-module PROC_basis
-    use basis 
-    implicit none
-contains
+! ==================================================
+! PROCESS
+! ==================================================
 
 
 subroutine PROC_H(l) ! It must be called after PROC_input
+    character(30), parameter :: form_out = '(1A15, 10F10.3)'
     integer, intent(in) :: l 
-    character(30), parameter :: form_out = '(1X, 1A, 10F10.3)'
     real(8) :: sign, tmp 
     integer :: i, j, u, v, num, ty 
 
 !     write(*, *) "Here. (1-1)"
-    allocate(tmp_H(2*N, 2*N), tmp_E(2*N))
+    allocate(tmp_H(1:2*N, 1:2*N), tmp_E(1:2*N))
     tmp_H(:, :) = 0.d0 
     do i = 1, 2*N 
         do j = 1, 2*N 
@@ -191,4 +190,4 @@ subroutine PROC_basis_plot ! It must be called after PROC_input, PROC_H
     close(file_psi)
     close(file_ene)
 end subroutine PROC_basis_plot
-end module PROC_basis
+end module basis

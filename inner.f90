@@ -1,7 +1,7 @@
 module inner
     use global 
     implicit none
-    complex(8), save, allocatable :: a(:)
+    complex(8), save, allocatable, protected :: a(:)
 contains 
     
 
@@ -22,7 +22,6 @@ subroutine inner_coeff(l)
         a(j) = tmp1*tmp2/R(l)
     end do     
 end subroutine inner_coeff
-end module inner
 
 
 
@@ -33,10 +32,9 @@ end module inner
 
 
 
-module PROC_inner
-    use inner 
-    implicit none
-contains
+! ==================================================
+! PROCESS
+! ==================================================
 
 
 subroutine PROC_inner_achive(l)
@@ -46,7 +44,6 @@ subroutine PROC_inner_achive(l)
 
     allocate(a(1:N))
     call inner_coeff(l) 
-
     do i = 1, N 
         tmp = 0.d0 
         do j = 1, N 
@@ -54,22 +51,34 @@ subroutine PROC_inner_achive(l)
         end do 
         inner_u(l, i) = tmp 
     end do 
-
     deallocate(a)
 end subroutine PROC_inner_achive
 
 
-subroutine PROC_inner_plot(l) ! It must be called after PROC_input, PROC_H, PROC_boundary
-    integer,       intent(in) :: l 
-    integer,       parameter  :: file_psi = 101
-    character(30), parameter  :: form_psi = '(30ES25.10)'
-    integer     :: i, j
+subroutine PROC_inner_plot ! It must be called after PROC_input, PROC_H, PROC_boundary
+    integer,       parameter :: file_psi1 = 101, file_psi2 = 102
+    character(30), parameter :: form_psi  = '(30ES25.10)'
+    real(8), parameter :: pi = 2.0d0*acos(0.0d0) 
+    real(8), parameter :: radian_to_degree = 180.d0/pi 
+    complex(16) :: tmp 
+    integer     :: i, j, k 
 
-    open(file_psi, file = "inout/inner_psi.d")
-    write(file_psi, form_psi) 0.d0, 0.d0 
-    do i = 1, N 
-        write(file_psi, form_psi) coord_r(i), dble(abs(inner_u(l, i))**2.d0)
+    open(file_psi1, file = "inout/inner_psi.d")
+    open(file_psi2, file = "inout/inner_psi-4pir.d")
+    do i = 1, N, N/pr 
+        do j = 0, ptheta
+            tmp = 0.d0 
+            do k = 0, L 
+                tmp = tmp +inner_u(k, i)/coord_r(i)*plgndr_s(i, 0, cos(coord_theta(j)))
+            end do 
+            write(file_psi1, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(tmp)**2.d0)
+            tmp = tmp*4.d0*pi*coord_r(i)
+            write(file_psi2, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(tmp)**2.d0)
+        end do 
+        write(file_psi1, form_psi) 
+        write(file_psi2, form_psi) 
     end do 
-    close(file_psi)
+    close(file_psi1)
+    close(file_psi2)
 end subroutine PROC_inner_plot
-end module PROC_inner
+end module inner
