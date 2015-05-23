@@ -44,48 +44,11 @@ end function outer_u
 ! ==================================================
 
 
-subroutine PROC_CS_achive(j)
-    use math_const,  only: pi => math_pi
-    character(30), parameter  :: form_out = '(1A15, 5X, 1ES25.10)'
-    integer (I4B), intent(in) :: j 
-    complex (CQP) :: tmp
-    real    (RDP) :: k 
-    integer (I4B) :: i
-
-    k = (2.d0*Mass*Kinet)**0.50
-    allocate(f(0:L))
-    call mat_f 
-
-    tmp = 0.d0 
-    do i = 0, L 
-        tmp = tmp +f(i)
-    end do 
-    tmp = 4.d0*pi/k*tmp
-    CS(j) = dble(aimag(tmp))
-    write(*, form_out) "total sigma: ", CS(j) 
-    deallocate(f)
-end subroutine PROC_CS_achive
-
-
-subroutine PROC_E_CS_plot
-    use hamiltonian, only: coord_E 
-    integer (I1B), parameter :: file_cs = 101
-    character(30), parameter :: form_cs = '(30ES25.10)'
-    integer (I4B) :: j 
-
-    open(file_cs, file = "inout/total_cs.d")
-    do j = 1, pE 
-        write(file_cs, form_cs) coord_E(j), CS(j) 
-    end do 
-    close(file_cs)
-end subroutine PROC_E_CS_plot
-
-
 subroutine PROC_CS_plot 
     use math_const,  only: pi => math_pi, degree => math_degree
     use hamiltonian, only: coord_r, coord_theta
-    integer (I1B), parameter :: file_cs  = 101
-    character(30), parameter :: form_cs  = '(30ES25.10)'
+    integer (I1B), parameter :: file_dcs = 101
+    character(30), parameter :: form_dcs = '(30ES25.10)'
     character(30), parameter :: form_out = '(1A15, 5X, 1ES25.10)'
     real    (RDP), parameter :: radian_to_degree = 1.d0/degree 
     complex (CQP) :: tmp1, tmp2  
@@ -94,25 +57,27 @@ subroutine PROC_CS_plot
 
     k = (2.d0*Mass*Kinet)**0.50
     allocate(f(0:L))
+    
     call mat_f 
 
     tmp1 = 0.d0 
     do i = 0, L 
         tmp1 = tmp1 +f(i)
+!         write(*, *) tmp1 
     end do 
     tmp1 = 4.d0*pi/k*tmp1
     write(*, form_out) "total sigma: ", dble(aimag(tmp1))
 
-    open(file_cs, file = "inout/diff_cs.d")
+    open(file_dcs, file = "inout/diff_cs.d")
     tmp2 = 0.d0 
     do j = 0, ptheta 
         do i = 0, L 
             tmp2 = tmp2 +f(i)*plgndr_s(i, 0, cos(coord_theta(j)))
         end do 
-    write(file_cs, form_cs) coord_theta(j)*radian_to_degree, abs(tmp2)**2.d0
-!     write(file_cs, form_cs) coord_theta(j)*radian_to_degree, abs(tmp2/tmp1)**2.d0
+    write(file_dcs, form_dcs) coord_theta(j)*radian_to_degree, abs(tmp2)**2.d0
+!     write(file_dcs, form_dcs) coord_theta(j)*radian_to_degree, abs(tmp2/tmp1)**2.d0
     end do 
-    close(file_cs)
+    close(file_dcs)
     deallocate(f)
 end subroutine PROC_CS_plot
 

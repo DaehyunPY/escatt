@@ -16,37 +16,40 @@ OBJECTS     = $(COMMON_MOD1:.f=.o) $(COMMON_MOD2:.for=.o) $(COMMON_MOD3:.f90=.o)
 # f  : (ibm language) punchcard fortran file
 
 # # gnu compiler: 
-# # FORTRAN = gfortran
-# FORTRAN = /usr/local/bin/gfortran
+# FORTRAN = gfortran
 # FFLAGS += -fimplicit-none -fbounds-check
 # FFLAGS1 = -std=legacy -x f77
 # FFLAGS2 = -std=legacy
-# FFLAGS3 = 
+# # FFLAGS3 = 
+
 # intel compiler: 
-# FORTRAN = ifort
-FORTRAN = /opt/intel/bin/ifort
+FORTRAN = ifort
 # FFLAGS += 
 FFLAGS1 = -nostand -f66 
 FFLAGS2 = -nostand 
 # FFLAGS3 = 
 
-
-# # gnu library
+# # gnu library: 
 # FFLAGS  += -I/usr/include
 # LDFLAGS += -L/usr/lib
 # LDFLAGS += -llapack -lblas
-# # openblas library
+
+# # openblas library (mac homebrew): 
 # FFLAGS  += -I/usr/local/opt/openblas/include
 # LDFLAGS += -L/usr/local/opt/openblas/lib
 # LDFLAGS += -lopenblas
-# mkl library
+
+# mkl library (mac): 
 MKLROOT  = /opt/intel/mkl
-# MKLROOT  = /opt/intel/composer_xe_2015.0.077/mkl
-# FFLAGS  += -i8 -I$(MKLROOT)/include -I$(MKLROOT)/include/ilp64 
 FFLAGS  += -i8 -I$(MKLROOT)/include -I$(MKLROOT)/include/intel64/ilp64 
 LDFLAGS += $(MKLROOT)/lib/libmkl_blas95_ilp64.a $(MKLROOT)/lib/libmkl_lapack95_ilp64.a
-# LDFLAGS += -L$(MKLROOT)/lib -lmkl_intel_ilp64 -lmkl_core -lmkl_sequential -lpthread -lm
 LDFLAGS += $(MKLROOT)/lib/libmkl_intel_ilp64.a $(MKLROOT)/lib/libmkl_core.a $(MKLROOT)/lib/libmkl_sequential.a -lpthread -lm
+
+# # mkl library (linux): 
+# MKLROOT  = /opt/intel/mkl
+# FFLAGS  += -i8 -I$(MKLROOT)/include -I$(MKLROOT)/include/intel64/ilp64 
+# LDFLAGS += $(MKLROOT)/lib/intel64/libmkl_blas95_ilp64.a $(MKLROOT)/lib/intel64/libmkl_lapack95_ilp64.a 
+# LDFLAGS += -Wl,--start-group $(MKLROOT)/lib/intel64/libmkl_intel_ilp64.a $(MKLROOT)/lib/intel64/libmkl_core.a $(MKLROOT)/lib/intel64/libmkl_sequential.a -Wl,--end-group -lpthread -lm
 
 
 ##################################################
