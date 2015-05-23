@@ -56,29 +56,42 @@ end subroutine PROC_inner_achive
 
 
 subroutine PROC_inner_plot ! It must be called after PROC_input, PROC_H, PROC_boundary
-    integer,       parameter :: file_psi1 = 101, file_psi2 = 102
+    integer,       parameter :: file_psi1 = 101, file_psi2 = 102, file_psi3 = 103
     character(30), parameter :: form_psi  = '(30ES25.10)'
     real(8), parameter :: pi = 2.0d0*acos(0.0d0) 
     real(8), parameter :: radian_to_degree = 180.d0/pi 
     complex(16) :: tmp 
     integer     :: i, j, k 
 
-    open(file_psi1, file = "inout/inner_psi.d")
-    open(file_psi2, file = "inout/inner_psi-4pir.d")
+    open(file_psi1, file = "inout/inner_u0.d")
+    tmp = 0.d0 
+    do i = 1, N
+!         tmp = inner_u(0, i)/coord_r(i)
+        tmp = inner_u(0, i)
+        write(file_psi1, form_psi) coord_r(i), dble(abs(tmp)**2.d0)
+!         write(file_psi1, form_psi) coord_r(i), dble(real(tmp))
+!         write(file_psi1, form_psi) coord_r(i), dble(aimag(tmp))
+    end do 
+    close(file_psi1)
+
+    open(file_psi2, file = "inout/inner_psi.d")
+    open(file_psi3, file = "inout/inner_psi-4pir.d")
     do i = 1, N, N/pr 
         do j = 0, ptheta
             tmp = 0.d0 
             do k = 0, L 
                 tmp = tmp +inner_u(k, i)/coord_r(i)*plgndr_s(i, 0, cos(coord_theta(j)))
             end do 
-            write(file_psi1, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(tmp)**2.d0)
+!             write(file_psi2, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(tmp)**2.d0)
+            write(file_psi2, form_psi) coord_r(i), coord_theta(j), dble(abs(tmp)**2.d0)
             tmp = tmp*4.d0*pi*coord_r(i)
-            write(file_psi2, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(tmp)**2.d0)
+!             write(file_psi3, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(tmp)**2.d0)
+            write(file_psi3, form_psi) coord_r(i), coord_theta(j), dble(abs(tmp)**2.d0)
         end do 
-        write(file_psi1, form_psi) 
         write(file_psi2, form_psi) 
+        write(file_psi3, form_psi) 
     end do 
-    close(file_psi1)
     close(file_psi2)
+    close(file_psi3)
 end subroutine PROC_inner_plot
 end module inner

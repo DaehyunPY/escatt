@@ -12,7 +12,7 @@ function Poten(r)
     real(8), intent(in) :: r
     real(8) :: Poten
 
-    Poten = -Charge/r
+    Poten = Charge*r**2.d0*exp(-r)
 end function Poten
 
 
@@ -95,6 +95,7 @@ subroutine PROC_input
 
     dr     = ra/dble(N) 
     dtheta = pi/dble(ptheta)
+!     dtheta = (2.d0*pi)/dble(ptheta)
 
     allocate(H(1:N, 1:N), E(1:N))
     allocate(R(0:L), K(0:L), S(0:L))
