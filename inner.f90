@@ -5,19 +5,21 @@ module inner
 contains 
     
 
-subroutine inner_coeff
-    real(8),    parameter :: pi = 2.0d0*acos(0.0d0)
-    complex(8), parameter ::  i = (0.d0, 1.d0)
-    real(8)    :: ka, tmp2
+subroutine inner_coeff(l)
+    integer,    intent(in) :: l 
+    real(8),    parameter  :: pi = 2.0d0*acos(0.0d0)
+    complex(8), parameter  :: i  = (0.d0, 1.d0)
+    real(8)    :: ka, scka, tmp2
     complex(8) :: tmp1 
     integer    :: j
 
-    ka = (2.d0*Mass*Kinet)**0.5d0*ra
-    tmp1 = (exp(-i*ka) -S*exp(i*ka))/ka 
+    ka   = (2.d0*Mass*Kinet)**0.5d0*ra
+    scka = ka -dble(l)*pi/2.d0
+    tmp1 = (exp(-i*scka) -S(l)*exp(i*scka))/ka
 
     do j = 1, N 
         tmp2 = H(j, N)/(2.d0*Mass*(E(j)**2.d0 -Kinet**2.d0))
-        a(j) = tmp1*tmp2/R 
+        a(j) = tmp1*tmp2/R(l)
     end do     
 end subroutine inner_coeff
 end module inner
@@ -37,14 +39,15 @@ module PROC_inner
 contains
 
 
-subroutine PROC_inner_plot
-    integer,       parameter :: file_psi = 101
-    character(30), parameter :: form_psi = '(30ES25.10)'
+subroutine PROC_inner_plot(l) ! It must be called after PROC_input, PROC_H, PROC_boundary
+    integer,       intent(in) :: l 
+    integer,       parameter  :: file_psi = 101
+    character(30), parameter  :: form_psi = '(30ES25.10)'
     complex(16) :: tmp 
     integer     :: i, j
 
     allocate(a(1:N))
-    call inner_coeff
+    call inner_coeff(l) 
 
     open(file_psi, file = "inout/inner_psi.d")
     write(file_psi, form_psi) 0.d0, 0.d0 

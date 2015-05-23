@@ -47,6 +47,21 @@ subroutine diag
 end subroutine diag
 
 
+subroutine test
+    real(16) :: sum 
+    integer  :: i, j 
+
+    do j = 1, 2*N
+        sum = 0.d0 
+        do i = 1, N 
+            sum = sum +tmp_H(i, j)*tmp_H(i, j)
+        end do 
+        write(*, *) j, dble(sum), tmp_E(j)
+!         H(j, :) = H(j, :)/sum**0.5d0 
+    end do  
+end subroutine test
+
+
 subroutine stnad
     real(16) :: sum 
     integer  :: i, j 
@@ -98,30 +113,32 @@ subroutine PROC_H(l) ! It must be called after PROC_input
     enddo
 
     call diag
+!     call test 
 
     num     = 0
     H(:, :) = 0.d0
     E(:)    = 0.d0
     do j = 1, 2*N
-        if(tmp_H(1, j)*tmp_H(2*N -1, j) > 0.d0) then  
+!         if(tmp_H(1, j)*tmp_H(2*N -1, j) > 0.d0) then  
             num = num +1
-            if(num <= N) then 
-                E(num) = tmp_E(j)
+!             if(num <= N) then 
+!                 E(num) = tmp_E(j)
                 sign   = 1.d0 
                 if(tmp_H(1, j) < 0.d0) then 
                     sign = -1.d0 
                 end if 
                 do i = 1, N 
-                    H(num, i) = sign*(tmp_H(i, j) +tmp_H(2*N -i, j))*2.d0**(-0.5d0)
+                    tmp_H(i, j) = sign*(tmp_H(i, j) +tmp_H(2*N -i, j))*2.d0**(-0.5d0)
                 end do 
-            end if 
-        end if 
+!             end if 
+!         end if 
     end do 
-    write(*, *) N, num 
-    if(num < N) stop "subroutine PROC_H: Error (3)"
+!     write(*, *) N, num 
+!     if(num < N) stop "subroutine PROC_H: Error (3)"
+    call test 
     deallocate(tmp_H, tmp_E)
 
-    call stnad
+!     call stnad
     write(*, form_out) "Energy: ", (E(i), i = 1, 10)
 end subroutine PROC_H
 

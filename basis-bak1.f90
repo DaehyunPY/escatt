@@ -56,7 +56,6 @@ subroutine stnad
         do i = 1, N 
             sum = sum +H(j, i)*H(j, i)*dr
         end do 
-        write(*, *) j, dble(sum)
         H(j, :) = H(j, :)/sum**0.5d0 
     end do  
 end subroutine stnad
@@ -81,7 +80,7 @@ subroutine PROC_H(l) ! It must be called after PROC_input
     integer, intent(in) :: l 
     character(30), parameter :: form_out = '(1X, 1A, 10F10.3)'
     real(8) :: sign, tmp 
-    integer :: i, j, num
+    integer :: i, j, k, num, ch 
 
     allocate(tmp_H(2*N, 2*N), tmp_E(2*N))
     tmp_H(:, :) = 0.d0  
@@ -100,25 +99,43 @@ subroutine PROC_H(l) ! It must be called after PROC_input
     call diag
 
     num     = 0
+    ch      = -1 
     H(:, :) = 0.d0
     E(:)    = 0.d0
-    do j = 1, 2*N
-        if(tmp_H(1, j)*tmp_H(2*N -1, j) > 0.d0) then  
-            num = num +1
-            if(num <= N) then 
-                E(num) = tmp_E(j)
-                sign   = 1.d0 
-                if(tmp_H(1, j) < 0.d0) then 
-                    sign = -1.d0 
-                end if 
-                do i = 1, N 
-                    H(num, i) = sign*(tmp_H(i, j) +tmp_H(2*N -i, j))*2.d0**(-0.5d0)
-                end do 
-            end if 
+    do k = 1, N
+        if(tmp_H(1, 2*k -1)*tmp_H(2*N -1, 2*k -1) > 0.d0 & 
+            .and. tmp_H(1, 2*k)*tmp_H(2*N -1, 2*k) < 0.d0) then 
+                j   = 2*k -1
+                num = num +1
+                ch  = -1
+        else if(tmp_H(1, 2*k -1)*tmp_H(2*N -1, 2*k -1) < 0.d0 & 
+            .and. tmp_H(1, 2*k)*tmp_H(2*N -1, 2*k) > 0.d0) then 
+                j   = 2*k
+                num = num +1
+                ch  = 0
+        else if(tmp_H(1, 2*k -1)*tmp_H(2*N -1, 2*k -1) > 0.d0 & 
+            .and. tmp_H(1, 2*k)*tmp_H(2*N -1, 2*k) > 0.d0) then 
+                j   = 2*k +ch
+                num = num +1
+                write(*, *) "subroutine PROC_H: Warning (1)", N, j 
+        else 
+                j   = 2*k +ch
+                num = num +1
+                write(*, *) "subroutine PROC_H: Warning (2)", N, j 
         end if 
+        E(num) = tmp_E(j)
+        sign   = 1.d0 
+        if(tmp_H(1, j) < 0.d0) then 
+            sign = -1.d0 
+        end if 
+        do i = 1, N 
+            H(num, i) = sign*(tmp_H(i, j) +tmp_H(2*N -i, j))*2.d0**(-0.5d0)
+        end do 
     end do 
-    write(*, *) N, num 
-    if(num < N) stop "subroutine PROC_H: Error (3)"
+    if(num /= N) then 
+        write(*, *) "subroutine PROC_H: Error (3)", N, num 
+        stop 
+    end if 
     deallocate(tmp_H, tmp_E)
 
     call stnad
