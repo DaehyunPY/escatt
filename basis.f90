@@ -1,46 +1,10 @@
-module basis_global
-    implicit none
-    real(8), parameter ::  r_a = 20.d0
-    integer, parameter ::    N = 1000
-    real(8), parameter ::   dr = r_a/dble(N)
-    real(8), parameter :: mass = 1.d0
-    real(8) :: H(1:N, 1:N), E(1:N)
-contains
-
-
-function Poten(r)
-    real(8), intent(in) :: r
-    real(8) :: Poten
-
-    Poten = -1.d0/r
-end function Poten
-
-
-function cood_r(i)
-    integer, intent(in) :: i
-    real(8) :: cood_r
-
-    cood_r = dr*dble(i)
-end function cood_r
-end module basis_global
-
-
-
-
-
-
-
-
-
-
 module basis_process
-    use basis_global
+    use global 
     implicit none
 contains
 
 
-function nabla_x(dr, ty_i, ty_j)
-    real(8), intent(in) :: dr
+function nabla_x(ty_i, ty_j)
     integer, intent(in) :: ty_i, ty_j
     real(8), parameter  :: pi = 2.0d0*acos(0.0d0)
     real(8) :: nabla_x, i, j
@@ -62,7 +26,6 @@ end function nabla_x
 
 subroutine PROC_H
     real(8), allocatable :: tmp_H(:, :), tmp_E(:)
-    integer, parameter   :: file_Psi = 101, file_Energy = 102 
     real(8) :: sign
     integer :: i, j, k, num, ch 
 
@@ -70,7 +33,7 @@ subroutine PROC_H
     tmp_H(:, :) = 0.d0  
     do j = 1, 2*N
         do i = 1, 2*N
-            tmp_H(i, j) = -1.d0/(2.d0*mass)*nabla_x(dr, i, j)
+            tmp_H(i, j) = -1.d0/(2.d0*Mass)*nabla_x(i, j)
         enddo
     enddo
     do i = 1, N
@@ -96,7 +59,7 @@ subroutine PROC_H
             .and. tmp_H(1, 2*k)*tmp_H(2*N -1, 2*k) > 0.d0) then 
                 j = 2*k +ch 
                 num = num +1
-                write(*, *) "PROCESS H: Warning. (1)", j 
+                write(*, *) "PROCESS H: Warning. (1)", N, j 
         else 
             stop "PROCESS H: Somthing is wrong. (2)"
         end if 
@@ -143,7 +106,7 @@ subroutine PROC_diag(H, E)
 end subroutine PROC_diag
 
 
-subroutine PROC_Psi
+subroutine PROC_psi
     real(16) :: sum 
     integer  :: i, j 
 
@@ -154,18 +117,19 @@ subroutine PROC_Psi
         end do 
         H(j, :) = H(j, :)/sum**0.5d0 
     end do  
-end subroutine PROC_Psi
+end subroutine PROC_psi
 
 
 subroutine PROC_plot
-    integer,       parameter :: file_Psi = 101
-    character(30), parameter :: form_Psi = '(30ES25.10)'
+    integer,       parameter :: file_psi = 101
+    character(30), parameter :: form_psi = '(30ES25.10)'
     integer :: i, j 
 
-    open(file_Psi, file = "inout/basis_psi.d")
-    write(file_Psi, form_Psi) 0.d0, 0.d0, 0.d0, 0.d0, 0.d0, 0.d0, 0.d0 
+    open(file_psi, file = "inout/basis_psi.d")
+    write(file_psi, form_psi) 0.d0, 0.d0, 0.d0, 0.d0, 0.d0, 0.d0
     do i = 1, N 
-        write(file_Psi, form_Psi) cood_r(i), (H(j, i), j = 1, 5), H(N, i)
+        write(file_psi, form_psi) cood_r(i), (H(j, i), j = 1, 5)
     end do 
+    close(file_psi)
 end subroutine PROC_plot
 end module basis_process
