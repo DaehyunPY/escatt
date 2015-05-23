@@ -5,8 +5,8 @@
 TARGET  = a.out 
 # COMMON_MOD1 = file.f
 # COMMON_MOD2 = file.for 
-# COMMON_MOD3 = diag.f90 input.f90 main.f90 
-COMMON_MOD3 = input.f90 main.f90 
+# COMMON_MOD3 = file.f90
+COMMON_MOD3 = basis.f90 boundary.f90 main.f90 
 COMMON_MOD  = $(COMMON_MOD1)       $(COMMON_MOD2)         $(COMMON_MOD3)
 OBJECTS     = $(COMMON_MOD1:.f=.o) $(COMMON_MOD2:.for=.o) $(COMMON_MOD3:.f90=.o)
 # f90: (ansi/iso or iso standard) modern fortran file
@@ -69,6 +69,6 @@ ${TARGET}: ${OBJECTS}; ${FORTRAN} -o $@ ${OBJECTS} ${LDFLAGS}
 ##### FILE DEPENDENCIES ##########################
 ##################################################
 
-# ${OBJECTS}: ${COMMON_MOD}
-main.o: input.o
+${OBJECTS}: ${COMMON_MOD}
+# main.o: input.o
 # input.o: diag.o
