@@ -11,7 +11,7 @@ subroutine mat_R(l)
 
     tmp = 0.d0 
     do i = 1, N 
-        tmp = tmp +H(i, N)**2.d0/(2.d0*Mass*(E(i)**2.d0 -Kinet**2.d0))
+        tmp = tmp +H(i, N)**2.d0/(2.d0*Mass*(E(i) -Kinet))
     end do 
     R(l) = tmp/ra 
     write(*, *) "R: ", l, R(l)

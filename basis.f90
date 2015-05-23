@@ -58,14 +58,6 @@ subroutine correct(num, ty)
 
     sum = 0.d0 
     do i = 1, N 
-        tmp = (tmp_H(2*i -1, 2*num -1) +tmp_H(2*i, 2*num -1))*2.d0**(-0.5d0) &
-                /dr**0.5d0 
-        sum = sum +tmp*tmp*dr 
-    end do 
-    write(*, *) "before corrected: ", num, dble(sum)
-
-    sum = 0.d0 
-    do i = 1, N 
         tmp = (tmp_H(2*i -1, 2*num) +tmp_H(2*i, 2*num))*2.d0**(-0.5d0) &
                 /dr**0.5d0 
         sum = sum +tmp*tmp*dr 
@@ -84,14 +76,6 @@ subroutine correct(num, ty)
     tmp_H(:, 2*num -1) = c1*tmp_H(:, 2*num -1) +sign*c2*tmp_H(:, 2*num)
 !     tmp_E(2*num -1) = c1**2.d0*tmp_E(2*num -1) +c2**2.d0*tmp_E(2*num)
     tmp_E(2*num -1) = (1.d0 -sum)*tmp_E(2*num -1) +sum*tmp_E(2*num)
-
-    sum = 0.d0 
-    do i = 1, N 
-        tmp = (tmp_H(2*i -1, 2*num -1) +tmp_H(2*i, 2*num -1))*2.d0**(-0.5d0) &
-                /dr**0.5d0 
-        sum = sum +tmp*tmp*dr 
-    end do 
-    write(*, *) "after corrected: ", num, dble(sum)
 end subroutine correct
 
 
@@ -138,17 +122,13 @@ subroutine PROC_H(l) ! It must be called after PROC_input
         do j = 1, 2*N 
             if(i <= N) then 
                 u = 2*i -1 
-!                 u = 2*(N -i +1) -1 
             else 
                 u = 2*(2*N -i +1)
-!                 u = 2*(i -N)
             end if 
             if(j <= N) then 
                 v = 2*j -1 
-!                 v = 2*(N -j +1) -1 
             else 
                 v = 2*(2*N -j +1)
-!                 v = 2*(j -N)
             end if 
             tmp_H(u, v) = tmp_H(u, v) -1.d0/(2.d0*Mass)*nabla_x(i, j)
         enddo
@@ -156,11 +136,9 @@ subroutine PROC_H(l) ! It must be called after PROC_input
 !     write(*, *) "Here. (1-2)"
     do i = 1, N 
         u = 2*i -1 
-!         u = 2*(N -i +1) -1 
         v = 2*i 
-!         v = 2*(N -i +1) -1 
-        tmp = 1.d0/(2.d0*Mass)*dble(l)*(dble(l) +1.d0)/cood_r(i)**2.d0 &
-                +Poten(cood_r(i))
+        tmp = 1.d0/(2.d0*Mass)*dble(l)*(dble(l) +1.d0)/coord_r(i)**2.d0 &
+                +Poten(coord_r(i))
         tmp_H(u, u) = tmp_H(u, u) +tmp 
         tmp_H(v, v) = tmp_H(v, v) +tmp 
     enddo
@@ -175,7 +153,6 @@ subroutine PROC_H(l) ! It must be called after PROC_input
     ty      = 1 
     do j = 1, 2*N, 2 
         num = num +1 
-!         call correct(num, ty)
         if(ty == 1) call correct(num, ty)
         if(tmp_H(1, j) > 0.d0) then 
             sign = 1.d0 
@@ -194,7 +171,7 @@ subroutine PROC_H(l) ! It must be called after PROC_input
     deallocate(tmp_H, tmp_E)
 
 !     write(*, *) "Here. (4)"
-    call stnad
+!     call stnad
     write(*, form_out) "Energy: ", (E(i), i = 1, 10)
 end subroutine PROC_H
 
@@ -208,7 +185,7 @@ subroutine PROC_basis_plot ! It must be called after PROC_input, PROC_H
     open(file_ene, file = "inout/basis_energy.d")
     write(file_psi, form_psi) 0.d0, 0.d0, 0.d0, 0.d0, 0.d0, 0.d0
     do i = 1, N 
-        write(file_psi, form_psi) cood_r(i), (H(j, i), j = 1, 5), H(N, i)
+        write(file_psi, form_psi) coord_r(i), (H(j, i), j = 1, 5), H(N, i)
         write(file_ene, form_ene) i, E(i) 
     end do 
     close(file_psi)
