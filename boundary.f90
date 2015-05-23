@@ -7,67 +7,61 @@ contains
 
 subroutine mat_R(l)
     character(30), parameter  :: form_out = '(1A15, 1I15, 1ES15.3)'
-    integer (I4B), intent(in) :: l 
-    real    (RQP) :: sum 
-    integer (I4B) :: i, j 
+    integer  (i4), intent(in) :: l 
+    real     (qp) :: sum 
+    integer  (i4) :: i, j 
 
     sum = 0.d0 
     do i = 1, N 
         sum = sum +H(i, N)**2.d0/(2.d0*Mass*(E(i) -Kinet)) 
     end do 
     R(l) = sum/ra 
-    write(*, form_out) "R: ", l, R(l)
+    write(file_log, form_out) "R: ", l, R(l)
 end subroutine mat_R
 
 
-! subroutine mat_K(l)
-!     character(30), parameter  :: form_out = '(1A15, 1I15, 1ES15.3)'
-!     integer (I4B), intent(in) :: l 
-!     real    (RDP) :: ka, agamma, diff_j, diff_y, tmp1, tmp2 
-
-!     ka     = (2.d0*Mass*Kinet)**0.5d0*ra
-!     agamma = 1.d0/R(l) -1.d0
-!     diff_j = (bessel_jn(l -1, ka) -bessel_jn(l +1, ka))/2.d0
-!     diff_y = (bessel_yn(l -1, ka) -bessel_yn(l +1, ka))/2.d0 
-!     tmp1   = ka*diff_j -agamma*bessel_jn(l, ka)
-!     tmp2   = ka*diff_y -agamma*bessel_yn(l, ka)
-!     K(l)   = tmp1/tmp2
-!     write(*, form_out) "K: ", l, K(l)
-! end subroutine mat_K
 subroutine mat_K(l)
-    use nr, only: sphbes_s
+    use gsl_special, only: gsl_sf_bessel_jsl, gsl_sf_bessel_ysl
     character(30), parameter  :: form_out = '(1A15, 1I15, 1ES15.3)'
-    integer (I4B), intent(in) :: l 
-    real    (RSP) :: ka, sb_j, sb_y, diff_j, diff_y 
-    real    (RDP) :: agamma, tmp1, tmp2 
+    integer  (i4), intent(in) :: l 
+    real     (dp) :: ka, sb_j, sb_y, diff_j, diff_y 
+    real     (dp) :: agamma, tmp1, tmp2 
 
     ka = (2.d0*Mass*Kinet)**0.5d0*ra
-    call sphbes_s(l, ka, sb_j, sb_y, diff_j, diff_y)
+    sb_j = gsl_sf_bessel_jsl(l, ka)
+    sb_y = gsl_sf_bessel_ysl(l, ka)
+    if(l /= 0_i4) then 
+        diff_j = gsl_sf_bessel_jsl(l -1_i4, ka) -dble(l +1_i4)/ka*gsl_sf_bessel_jsl(l, ka)
+        diff_y = gsl_sf_bessel_ysl(l -1_i4, ka) -dble(l +1_i4)/ka*gsl_sf_bessel_ysl(l, ka)
+    else if(l == 0_i4) then 
+        diff_j = -gsl_sf_bessel_jsl(0_i4 +1_i4, ka) -dble(0_i4 +1_i4)/ka*gsl_sf_bessel_jsl(0_i4, ka)
+        diff_y = -gsl_sf_bessel_ysl(0_i4 +1_i4, ka) -dble(0_i4 +1_i4)/ka*gsl_sf_bessel_ysl(0_i4, ka)
+    end if 
 
     agamma = 1.d0/R(l) -1.d0
     tmp1   = ka*diff_j -agamma*sb_j 
     tmp2   = ka*diff_y -agamma*sb_y 
     K(l)   = tmp1/tmp2
-    write(*, form_out) "K: ", l, K(l)
+    write(file_log, form_out) "K: ", l, K(l)
 end subroutine mat_K
 
 
 subroutine mat_S(l)
     use math_const, only: i => math_i 
     character(60), parameter  :: form_out = '(1A15, 1I15, 1ES15.3, 1ES15.3, "i")'
-    integer (I4B), intent(in) :: l 
+    integer  (i4), intent(in) :: l 
 
     S(l) = (1.d0 +i*K(l))/(1.d0 -i*K(l))
-    write(*, form_out) "S: ", l, S(l)
+    write(file_log, form_out) "S: ", l, S(l)
 end subroutine mat_S
 
 
 subroutine mat_A(l)
     use math_const, only: i => math_i 
     character(60), parameter  :: form_out = '(1A15, 1I15, 1ES15.3, 1ES15.3, "i")'
-    integer (I4B), intent(in) :: l 
-    complex (CDP) :: sign 
-    real    (RDP) :: tmp1, tmp2 
+    integer  (i4), intent(in) :: l 
+    complex  (dp) :: sign 
+    real     (dp) :: tmp1, tmp2 
 
     if(mod(l, 4) == 0) then 
         sign = 1.d0 
@@ -81,7 +75,7 @@ subroutine mat_A(l)
     tmp1 = (1.d0 +real(S(l)))/2.d0 
     tmp2 = aimag(S(l))/2.d0 
     A(l) = sign*(2.d0*dble(l) +1.d0)*exp(tmp1 +i*tmp2)
-    write(*, form_out) "A: ", l, A(l)
+    write(file_log, form_out) "A: ", l, A(l)
 end subroutine mat_A
 
 
@@ -101,7 +95,7 @@ end subroutine mat_A
 
 
 subroutine PROC_boundary_mat(l) ! It must be called after PROC_input, PROC_H 
-    integer(I4B), intent(in) :: l 
+    integer(i4), intent(in) :: l 
 
     call mat_R(l)
     call mat_K(l)
