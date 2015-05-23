@@ -1,15 +1,15 @@
 module outer
+    use kind_type
     use global 
     implicit none
-    complex(8), save, allocatable, protected :: f(:)
+    complex(CDP), save, allocatable, private, protected :: f(:)
 contains 
     
 
 subroutine mat_f 
-    complex(8), parameter :: i  = (0.d0, 1.d0)
-    real(8),    parameter :: pi = 2.0d0*acos(0.0d0)
-    real(8) :: k 
-    integer :: j 
+    use math_const, only: i => math_i, pi => math_pi 
+    real   (RDP) :: k 
+    integer(I4B) :: j 
 
     k = (2.d0*Mass*Kinet)**0.50
     do j = 0, L 
@@ -19,12 +19,11 @@ end subroutine mat_f
 
 
 function outer_u(l, r)
-    integer,    intent(in) :: l 
-    real(8),    intent(in) :: r 
-    real(8),    parameter  :: pi = 2.0d0*acos(0.0d0)
-    complex(8), parameter  :: i  = (0.d0, 1.d0)
-    real(8)    :: k, sckr 
-    complex(8) :: outer_u
+    use math_const, only: pi => math_pi, i => math_i
+    integer(I4B), intent(in) :: l 
+    real   (RDP), intent(in) :: r 
+    real   (RDP) :: k, sckr 
+    complex(CDP) :: outer_u
 
     k       = (2.d0*Mass*Kinet)**0.5d0
     sckr    = k*r -dble(l)*pi/2.d0
@@ -45,15 +44,16 @@ end function outer_u
 ! ==================================================
 
 
-subroutine PROC_CS_plot ! It must be called after PROC_input, PROC_H, PROC_boundary
-    integer,       parameter :: file_dcs = 101
+subroutine PROC_CS_plot 
+    use math_const,  only: pi => math_pi, degree => math_degree
+    use hamiltonian, only: coord_r, coord_theta
+    integer (I1B), parameter :: file_dcs = 101
     character(30), parameter :: form_dcs = '(30ES25.10)'
     character(30), parameter :: form_out = '(1A15, 5X, 1ES25.10)'
-    real(8), parameter :: pi = 2.0d0*acos(0.0d0) 
-    real(8), parameter :: radian_to_degree = 180.d0/pi 
-    complex(16) :: tmp1, tmp2  
-    real(8)     :: k 
-    integer     :: i, j 
+    real    (RDP), parameter :: radian_to_degree = 1.d0/degree 
+    complex (CQP) :: tmp1, tmp2  
+    real    (RDP) :: k 
+    integer (I4B) :: i, j 
 
     k = (2.d0*Mass*Kinet)**0.50
     allocate(f(0:L))
@@ -82,22 +82,20 @@ subroutine PROC_CS_plot ! It must be called after PROC_input, PROC_H, PROC_bound
 end subroutine PROC_CS_plot
 
 
-subroutine PROC_outer_plot ! It must be called after PROC_input, PROC_H, PROC_boundary
-    integer,       parameter :: file_psi1 = 101, file_psi2 = 102, file_psi3 = 103
+subroutine PROC_outer_plot 
+    use math_const,  only: pi => math_pi, degree => math_degree
+    use hamiltonian, only: coord_r, coord_theta
+    integer (I1B), parameter :: file_psi1 = 101, file_psi2 = 102, file_psi3 = 103
     character(30), parameter :: form_psi  = '(30ES25.10)'
-    real(8), parameter :: pi = 2.0d0*acos(0.0d0) 
-    real(8), parameter :: radian_to_degree = 180.d0/pi 
-    complex(16) :: tmp 
-    integer :: i, j, k 
+    real    (RDP), parameter :: radian_to_degree = 1.d0/degree
+    complex (CQP) :: tmp 
+    integer (I4B) :: i, j, k 
 
     open(file_psi1, file = "inout/outer_u0.d")
     tmp = 0.d0 
     do i = N +1, 2*N
-!         tmp = outer_u(0, coord_r(i))/coord_r(i)
         tmp = outer_u(0, coord_r(i))
         write(file_psi1, form_psi) coord_r(i), dble(abs(tmp)**2.d0)
-!         write(file_psi1, form_psi) coord_r(i), dble(real(tmp))
-!         write(file_psi1, form_psi) coord_r(i), dble(aimag(tmp))
     end do 
     close(file_psi1)
 

@@ -1,17 +1,17 @@
 module inner
+    use kind_type 
     use global 
     implicit none
-    complex(8), save, allocatable, protected :: a(:)
+    complex(CDP), save, allocatable, private, protected :: a(:)
 contains 
     
 
 subroutine inner_coeff(l)
-    integer,    intent(in) :: l 
-    real(8),    parameter  :: pi = 2.0d0*acos(0.0d0)
-    complex(8), parameter  :: i  = (0.d0, 1.d0)
-    real(8)    :: ka, scka, tmp2
-    complex(8) :: tmp1 
-    integer    :: j
+    use math_const, only: pi => math_pi, i => math_i 
+    integer(I4B), intent(in) :: l 
+    real   (RDP) :: ka, scka, tmp2
+    complex(CDP) :: tmp1 
+    integer(I4B) :: j
 
     ka   = (2.d0*Mass*Kinet)**0.5d0*ra
     scka = ka -dble(l)*pi/2.d0
@@ -38,9 +38,9 @@ end subroutine inner_coeff
 
 
 subroutine PROC_inner_achive(l)
-    integer, intent(in) :: l 
-    complex(16) :: tmp 
-    integer     :: i, j
+    integer(I4B), intent(in) :: l 
+    complex(CQP) :: tmp 
+    integer(I4B) :: i, j
 
     allocate(a(1:N))
     call inner_coeff(l) 
@@ -56,21 +56,19 @@ end subroutine PROC_inner_achive
 
 
 subroutine PROC_inner_plot ! It must be called after PROC_input, PROC_H, PROC_boundary
-    integer,       parameter :: file_psi1 = 101, file_psi2 = 102, file_psi3 = 103
+    use math_const,  only: pi => math_pi, degree => math_degree 
+    use hamiltonian, only: coord_r, coord_theta
+    integer (I1B), parameter :: file_psi1 = 101, file_psi2 = 102, file_psi3 = 103
     character(30), parameter :: form_psi  = '(30ES25.10)'
-    real(8), parameter :: pi = 2.0d0*acos(0.0d0) 
-    real(8), parameter :: radian_to_degree = 180.d0/pi 
-    complex(16) :: tmp 
-    integer     :: i, j, k 
+    real    (RDP), parameter :: radian_to_degree = 1.d0/degree 
+    complex (CQP) :: tmp 
+    integer (I4B) :: i, j, k 
 
     open(file_psi1, file = "inout/inner_u0.d")
     tmp = 0.d0 
     do i = 1, N
-!         tmp = inner_u(0, i)/coord_r(i)
         tmp = inner_u(0, i)
         write(file_psi1, form_psi) coord_r(i), dble(abs(tmp)**2.d0)
-!         write(file_psi1, form_psi) coord_r(i), dble(real(tmp))
-!         write(file_psi1, form_psi) coord_r(i), dble(aimag(tmp))
     end do 
     close(file_psi1)
 

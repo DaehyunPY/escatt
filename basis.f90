@@ -1,36 +1,16 @@
 module basis
+    use kind_type 
     use global 
     implicit none
-    real(8), save, allocatable, protected :: tmp_H(:, :), tmp_E(:)
+    real(RDP), save, allocatable, private, protected :: tmp_H(:, :), tmp_E(:)
 contains
-
-
-function nabla_x(int_i, int_j)
-    integer, intent(in) :: int_i, int_j
-    real(8), parameter  :: pi = 2.0d0*acos(0.0d0)
-    real(8) :: nabla_x, i, j
-
-    i = dble(int_i)
-    j = dble(int_j)
-    if(int_i /= int_j) then 
-        nabla_x = &
-            2.d0/(i -j)**2.d0
-    else
-        nabla_x = &
-            pi**2.d0 /3.d0
-    end if
-    nabla_x = nabla_x/dr**2.d0
-    if(mod(int_i +int_j, 2) == 0) then 
-        nabla_x = -nabla_x
-    end if 
-!        *(-1.d0)**(i -j +1.d0)
-end function nabla_x
 
 
 subroutine diag
     character(1), parameter :: jobz = 'Vectors', uplo = 'Upper' 
-    integer :: n, lda, lwork, info, tmp 
-    real(8), allocatable :: work(:)
+    integer(I8B) :: n, lda, lwork
+    integer(I1B) :: info 
+    real   (RDP), allocatable :: work(:)
 
 !     n     = 2*N
 !     lda   = n
@@ -51,11 +31,11 @@ end subroutine diag
 
 subroutine correct(num, ty)
     character(30), parameter :: form_out = '(1A15, 1I15, 1ES15.3)'
-    integer, intent(in)  :: num 
-    integer, intent(out) :: ty   
-    real(8)  :: tmp, sign, c1, c2     
-    real(16) :: sum 
-    integer  :: i, j
+    integer(I4B), intent(in)  :: num 
+    integer(I1B), intent(out) :: ty   
+    real   (RDP) :: tmp, sign, c1, c2     
+    real   (RQP) :: sum 
+    integer(I4B) :: i, j
 
     sum = 0.d0 
     do i = 1, N 
@@ -81,8 +61,8 @@ end subroutine correct
 
 
 subroutine stnad
-    real(16) :: sum 
-    integer  :: i, j 
+    real   (RQP) :: sum 
+    integer(I4B) :: i, j 
 
     do j = 1, N
         sum = 0.d0 
@@ -108,13 +88,14 @@ end subroutine stnad
 ! ==================================================
 
 
-subroutine PROC_H(l) ! It must be called after PROC_input
-    character(30), parameter :: form_out = '(1A15, 10F10.3)'
-    integer, intent(in) :: l 
-    real(8) :: sign, tmp 
-    integer :: i, j, u, v, num, ty 
+subroutine PROC_H(l) 
+    use hamiltonian, only: coord_r, nabla_x, Poten
+    character(30), parameter  :: form_out = '(1A15, 10F10.3)'
+    integer (I4B), intent(in) :: l 
+    real    (RDP) :: sign, tmp 
+    integer (I4B) :: i, j, u, v, num
+    integer (I1B) :: ty 
 
-!     write(*, *) "Here. (1-1)"
     allocate(tmp_H(1:2*N, 1:2*N), tmp_E(1:2*N))
     tmp_H(:, :) = 0.d0 
     do i = 1, 2*N 
@@ -132,7 +113,6 @@ subroutine PROC_H(l) ! It must be called after PROC_input
             tmp_H(u, v) = tmp_H(u, v) -1.d0/(2.d0*Mass)*nabla_x(i, j)
         enddo
     enddo
-!     write(*, *) "Here. (1-2)"
     do i = 1, N 
         u = 2*i -1 
         v = 2*i 
@@ -142,10 +122,8 @@ subroutine PROC_H(l) ! It must be called after PROC_input
         tmp_H(v, v) = tmp_H(v, v) +tmp 
     enddo
 
-!     write(*, *) "Here. (2)"
     call diag
 
-!     write(*, *) "Here. (3-1)"
     num     = 0 
     H(:, :) = 0.d0
     E(:)    = 0.d0 
@@ -158,7 +136,6 @@ subroutine PROC_H(l) ! It must be called after PROC_input
         else 
             sign = -1.d0 
         end if 
-!         write(*, *) "Here. (3-2)"
         do i = 1, N 
             H(num, i) = sign*(tmp_H(2*i -1, j) +tmp_H(2*i, j))*2.d0**(-0.5d0) &
                         /dr**0.5d0 
@@ -166,19 +143,18 @@ subroutine PROC_H(l) ! It must be called after PROC_input
         E(num) = tmp_E(j)
     end do 
     if(num /= N) stop "subroutine PROC_H: Error. (1)"
-!     write(*, *) "Here. (3-3)"
     deallocate(tmp_H, tmp_E)
 
-!     write(*, *) "Here. (4)"
 !     call stnad
     write(*, form_out) "Energy: ", (E(i), i = 1, 10)
 end subroutine PROC_H
 
 
-subroutine PROC_basis_plot ! It must be called after PROC_input, PROC_H 
-    integer,       parameter :: file_psi = 101,           file_ene = 102
+subroutine PROC_basis_plot 
+    use hamiltonian, only: coord_r
+    integer (I1B), parameter :: file_psi = 101,           file_ene = 102
     character(30), parameter :: form_psi = '(30ES25.10)', form_ene = '(1I5, 1ES25.10)'
-    integer :: i, j 
+    integer (I4B) :: i, j 
 
     open(file_psi, file = "inout/basis_psi.d")
     open(file_ene, file = "inout/basis_energy.d")

@@ -1,14 +1,15 @@
 module boundary
+    use kind_type
     use global 
     implicit none
 contains 
 
 
 subroutine mat_R(l)
-    character(30), parameter :: form_out = '(1A15, 1I15, 1ES15.3)'
-    integer, intent(in) :: l 
-    real(16) :: tmp 
-    integer  :: i, j 
+    character(30), parameter  :: form_out = '(1A15, 1I15, 1ES15.3)'
+    integer (I4B), intent(in) :: l 
+    real    (RQP) :: tmp 
+    integer (I4B) :: i, j 
 
     tmp = 0.d0 
     do i = 1, N 
@@ -20,10 +21,10 @@ end subroutine mat_R
 
 
 subroutine mat_K(l)
-    character(30), parameter :: form_out = '(1A15, 1I15, 1ES15.3)'
-    integer, intent(in) :: l 
-    real(8), parameter  :: pi = 2.0d0*acos(0.0d0)
-    real(8) :: ka, scka 
+    use math_const, only: pi => math_pi 
+    character(30), parameter  :: form_out = '(1A15, 1I15, 1ES15.3)'
+    integer (I4B), intent(in) :: l 
+    real    (RDP) :: ka, scka 
 
     ka   = (2.d0*Mass*Kinet)**0.5d0*ra
     scka = ka -dble(l)*pi/2.d0
@@ -33,9 +34,9 @@ end subroutine mat_K
 
 
 subroutine mat_S(l)
-    character(60), parameter :: form_out = '(1A15, 1I15, 1ES15.3, 1ES15.3, "i")'
-    integer,    intent(in) :: l 
-    complex(8), parameter  :: i = (0.d0, 1.d0)
+    use math_const, only: i => math_i 
+    character(60), parameter  :: form_out = '(1A15, 1I15, 1ES15.3, 1ES15.3, "i")'
+    integer (I4B), intent(in) :: l 
 
     S(l) = (1.d0 +i*K(l))/(1.d0 -i*K(l))
     write(*, form_out) "S: ", l, S(l)
@@ -56,7 +57,7 @@ end subroutine mat_S
 
 
 subroutine PROC_boundary_mat(l) ! It must be called after PROC_input, PROC_H 
-    integer, intent(in) :: l 
+    integer(I4B), intent(in) :: l 
 
     call mat_R(l)
 !     write(*, *) "Here. (1)"

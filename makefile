@@ -6,7 +6,9 @@ TARGET  = a.out
 # COMMON_MOD1 = file.f
 # COMMON_MOD2 = file.for 
 # COMMON_MOD3 = file.f90
-COMMON_MOD3 = nrtype.f90 nrutil.f90 global.f90 basis.f90 boundary.f90 inner.f90 outer.f90 main.f90 
+COMMON_MOD3 += nrtype-f2008.f90 nrutil-f2008.f90 plgndr-dp.f90 
+COMMON_MOD3 += const.f90 
+COMMON_MOD3 += global.f90 hamiltonian.f90 basis.f90 boundary.f90 inner.f90 outer.f90 main.f90 
 COMMON_MOD  = $(COMMON_MOD1)       $(COMMON_MOD2)         $(COMMON_MOD3)
 OBJECTS     = $(COMMON_MOD1:.f=.o) $(COMMON_MOD2:.for=.o) $(COMMON_MOD3:.f90=.o)
 # f90: (ansi/iso or iso standard) modern fortran file

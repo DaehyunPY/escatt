@@ -3,7 +3,7 @@ PARTICLE
 ==================================================
  --------------------------------------  -----.--
  MASS                              [au]      1.0
- KINETIC ENERGY                    [au]      3.52
+ KINETIC ENERGY                    [au]      3.8
  -
  -
 ==================================================
@@ -18,8 +18,8 @@ CALCULATION
 ==================================================
  --------------------------------------  -----.--
  BOUNDARY SIZE                      [1]     20.0
- GRID NUMBER OF r COORDINATES       [1]   2000
- LIMITATION OF QUANTUM NUMBER L     [1]      0 
+ GRID NUMBER OF r COORDINATES       [1]   1000
+ LIMITATION OF QUANTUM NUMBER L     [1]     20 
  -
  -
 ==================================================
