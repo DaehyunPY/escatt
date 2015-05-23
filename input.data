@@ -53,9 +53,9 @@ OPTION
  [UNIT]
     COUTION: Default unit system is a.u. 
     USE ENERGY UNIT eV                 [Y/N]       NO 
-    USE degree INSTEAD OF radian       [Y/N]       YES 
+    USE degree INSTEAD OF radian       [Y/N]       NO 
  [OUTPUT FILE]
-    POTENTIAL FUNCTION                 [Y/N]       NO 
+    POTENTIAL FUNCTION                 [Y/N]       YES 
     BASIS FUNCTION                     [Y/N]       YES  
     CROSS SECTION FUNCTION             [Y/N]       NO  
     INNER REGION WAVE FUNCTION         [Y/N]       NO 

@@ -2,10 +2,10 @@ module hamiltonian
     use kind_type
     use global 
     implicit none
-    real(dp), save, allocatable, protected :: coord_rho(:), coord_weight(:) ! coordination 
+    real(dp), save, allocatable, protected :: coord_rho(:), coord_weight(:)
     real(dp), save, protected :: dr_p_drho
     real(dp), save, protected :: dtheta, dE 
-    real(dp), save, private, protected :: & ! potential 
+    real(dp), save, private, protected :: &
         Z, alphab, cutoff, &   ! general 
         z0, z1, z2, &          ! II-1 GELTMAN
         pD, pH, pdelta, &      ! II-2 GREEN & YUKAWA
@@ -22,7 +22,7 @@ contains
 function coord_r(i) 
     integer(i4), intent(in) :: i
     real   (dp) :: coord_r
-    coord_r = dr_p_drho*(1_dp -abs(coord_rho(i)))
+    coord_r = dr_p_drho*coord_rho(i) +ra/2_dp 
 end function coord_r
 ! theta --------------------------------------------
 function coord_theta(i)
@@ -42,23 +42,40 @@ end function coord_E
 ! OPERATOR 
 ! ==================================================
 ! nabla --------------------------------------------
-function nabla_rho(j, k)
+function Delta_rho(j, k)
     use math_const, only: pi => math_pi 
     integer(i4), intent(in) :: j, k
-    real   (dp) :: nabla_rho, qj, qk, n 
+    real   (dp) :: Delta_rho, qj, qk, n 
     qj = coord_rho(j)
     qk = coord_rho(k)
-    n  = dble(size(coord_rho(:)))
+    n  = dble(size(coord_rho(:))) ! coord_rho(0:N)
     if(j /= k) then 
-        nabla_rho = &
+        Delta_rho = &
             (2_dp*qj/((qj -qk)*(1_dp -qj**2_dp)) -2_dp/(qj -qk)**2_dp) &
             *((1_dp -qk**2_dp)/(1_dp -qj**2_dp))**0.5_dp 
     else if(j == k) then 
-        nabla_rho = & 
+        Delta_rho = & 
             (-(n -1_dp)*(n +2_dp) +(n**2_dp +n +6_dp)*qj**2_dp) &
             /(3_dp*(1_dp -qj**2_dp)**2_dp)
     end if
-end function nabla_rho
+end function Delta_rho
+! nabla --------------------------------------------
+function Nabla_rho(j, k)
+    use math_const, only: pi => math_pi 
+    integer(i4), intent(in) :: j, k
+    real   (dp) :: Nabla_rho, qj, qk, n 
+    qj = coord_rho(j)
+    qk = coord_rho(k)
+    n  = dble(size(coord_rho(:))) ! coord_rho(0:N)
+    if(j /= k) then 
+        Nabla_rho = &
+            1_dp/(qj -qk) &
+            *((1_dp -qk**2_dp)/(1_dp -qj**2_dp))**0.5_dp 
+    else if(j == k) then 
+        Nabla_rho = & 
+            qj/(1_dp -qj)
+    end if
+end function Nabla_rho
 ! potential ----------------------------------------
 function Poten_r(r)
     real(dp), intent(in) :: r
@@ -75,9 +92,9 @@ function Poten_r(r)
         Poten_r = stat +pol
     else if(ty == 4) then 
         stat  = -Z*( &
-                        +pA**2_dp/(4_dp*alpha**3_dp)*exp(-2_dp*alpha*r)*(alpha +1_dp/r) &
-                        +4_dp*pA*pB/(alpha +beta)**3_dp*exp(-(alpha +beta)*r)*((alpha +beta)/2_dp +1_dp/r) & 
-                        +pB**2_dp/(4_dp*beta**3_dp)*exp(-2_dp*beta*r)*(beta +1_dp/r))
+                    +pA**2_dp/(4_dp*alpha**3_dp)*exp(-2_dp*alpha*r)*(alpha +1_dp/r) &
+                    +4_dp*pA*pB/(alpha +beta)**3_dp*exp(-(alpha +beta)*r)*((alpha +beta)/2_dp +1_dp/r) & 
+                    +pB**2_dp/(4_dp*beta**3_dp)*exp(-2_dp*beta*r)*(beta +1_dp/r))
         pol   = -alphab/(2_dp*(cutoff**2_dp +r**2_dp)**2_dp)
         Poten_r = stat +pol
     else if(ty == 5) then 
@@ -98,7 +115,7 @@ end function angular_r
 ! ==================================================
 ! CALCULATION 
 ! ==================================================
-! diagonalization ----------------------------------
+! dsbev diagonalization ----------------------------
 subroutine diag(AB, W, Z)
     real    (dp), intent(in)  :: AB(1:, 1:)
     real    (dp), intent(out) :: W(1:), Z(1:, 1:)
@@ -117,6 +134,7 @@ subroutine diag(AB, W, Z)
     if(info /= 0) stop "SUBROUTINE diag: Error. (1)"
     deallocate(work)
 end subroutine diag
+
 
 
 
@@ -189,21 +207,18 @@ subroutine PROC_input
     dtheta = pi/dble(ptheta)
     dE     = Scatt/dble(M) 
 
-    allocate(coord_rho(1:2*N), coord_weight(1:2*N))
+    allocate(coord_rho(0:N), coord_weight(0:N))
     allocate(H(1:N, 1:N), E(1:N))
-!     allocate(H(1:2*N -1, 1:2*N -1), E(1:2*N -1)) ! for test 
     allocate(R(0:L), K(0:L), S(0:L), A(0:L))
 
-    if(op_tcs == "Y" .or. op_phase == "Y" .or. op_lt == "Y") then 
+    if(op_tcs == "N" .and. op_phase == "N" .and. op_lt == "N") then 
+        M  = 1
+        dE = Scatt
+    else if(op_tcs == "Y" .or. op_phase == "Y" .or. op_lt == "Y") then 
         op_basis = "N"
         op_dcs   = "N"
         op_inner = "N" 
         op_outer = "N"
-    else if(op_tcs == "N" .and. op_phase == "N" .and. op_lt == "N") then 
-        M  = 1
-        dE = Scatt
-    else 
-        stop "SUBROUTINE PROC_input: Check option type."
     end if 
 end subroutine PROC_input
 ! end input ----------------------------------------
@@ -313,7 +328,7 @@ subroutine PORC_coord
     real   (dp) :: tmp, sign 
     integer(i4) :: n, i, j
     
-    n = size(coord_rho(:))
+    n = size(coord_rho(:)) ! coord_rho(0:N)
     allocate(X(1:2, 1:n), U(1:n, 1:n))
     X = 0_dp 
     do i = 1, n
@@ -324,8 +339,12 @@ subroutine PORC_coord
         end do 
     end do 
     call diag(X, coord_rho, U)
-    coord_weight(:) = 2_dp*U(1, :)**2_dp
-    dr_p_drho       = ra
+    
+    n = size(coord_rho(:)) -1 ! coord_rho(0:N)
+    do i = 0, n 
+        coord_weight(i) = 2_dp*U(1, i +1)**2_dp
+    end do 
+    dr_p_drho = ra/(coord_rho(n) -coord_rho(0))
     deallocate(X, U)
 end subroutine PORC_coord
 ! end coordination ---------------------------------
@@ -338,6 +357,12 @@ subroutine PROC_Poten_plot
     open(file_poten, file = "output/poten.d")
     do i = 1, N, N/pr 
         write(file_poten, form_poten) coord_r(i), Poten_r(coord_r(i))
+    end do
+    close(file_poten)
+
+    open(file_poten, file = "output/coord.d") ! for test 
+    do i = 0, N 
+        write(file_poten, form_poten) coord_r(i), coord_rho(i), coord_weight(i)
     end do 
     close(file_poten)
 end subroutine PROC_Poten_plot

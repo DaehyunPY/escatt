@@ -8,7 +8,7 @@ contains
     
 
 subroutine inner_coeff(l)
-    use math_const, only: i => math_i 
+    use math_const,  only: i => math_i 
     use gsl_special, only: gsl_sf_bessel_jsl, gsl_sf_bessel_ysl
     integer(i4), intent(in) :: l 
     real   (dp) :: ka, sb_j, sb_y, tmp2 
