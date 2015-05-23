@@ -13,7 +13,7 @@ subroutine mat_R(l)
 
     sum = 0.d0 
     do i = 1, N 
-        sum = sum +H(i, N)**2.d0/(2.d0*Mass*(E(i) -Scatt)) 
+        sum = sum +H(i, N)**2.d0/(2.d0*(E(i) -Scatt)) 
     end do 
     R(l) = sum/ra 
     write(file_log, form_out) "R: ", l, R(l)
@@ -27,7 +27,7 @@ subroutine mat_K(l)
     real     (dp) :: ka, sb_j, sb_y, diff_j, diff_y 
     real     (dp) :: agamma, tmp1, tmp2 
 
-    ka = (2.d0*Mass*Scatt)**0.5d0*ra
+    ka = (2.d0*Scatt)**0.5d0*ra
     sb_j = gsl_sf_bessel_jsl(l, ka)
     sb_y = gsl_sf_bessel_ysl(l, ka)
     if(l /= 0_i4) then 

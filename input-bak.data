@@ -2,29 +2,27 @@
 PARTICLE
 ============================================================
  -------------------------------------------  ------.------
- COUTION: You must set which one unit, au or eV. 
- SCATTERING ENERGY                      [au]      -1. 
-                                        [eV]       2.0 
+ MASS                                   [au]       1.0
+ SCATTERING ENERGY                   [au/eV]       3.0 
  -
  -
 ============================================================
 POTENTIAL
 ============================================================
  -------------------------------------------  ------.------
- TYPE                                 [TYPE]       1 
+ TYPE                                 [TYPE]       1
  ELEMENT NUMBER                          [1]       1.
- POLARIZABILITY                         [au]       1.38  
- CUTOFF                                 [au]       1.00  
+ POLARIZABILITY                         [au]       2.68 
+ CUTOFF                                 [au]       1.76 
  [TYPE 1] COULOMB
  [TYPE 2] GELTMAN
     COEFFICIENT z0                      [au]      1.07
     COEFFICIENT z1                      [au]      1.07
     COEFFICIENT z2                      [au]      1.
  [TYPE 3] GREEN & YUKAWA
-    COUTION: You must set D or H, and delta is option. 
-    COEFFICIENT D                       [au]     -1.  
-    COEFFICIENT H                       [au]      0.284 
-    COEFFICIENT delta                   [au]     -1.
+    COEFFICIENT D                       [au]      0.5 
+    COEFFICIENT H                       [au]     -1
+    COEFFICIENT delta                   [au]     -1
  [TYPE 4] KYLSTRA & BUCKINGHAM
     COEFFICIENT A                       [au]      2.60505
     COEFFICIENT B                       [au]      2.08144
@@ -41,9 +39,9 @@ CALCULATION
 ============================================================
  -------------------------------------------  ------.------
  BOUNDARY SIZE                          [au]      20.0
- GRID NUMBER OF r COORDINATES            [1]      50
+ GRID NUMBER OF r COORDINATES            [1]     100
  GRID NUMBER OF Energy COORDINATES       [1]    1000
- MAXIUM OF QUANTUM NUMBER L              [1]       0 
+ MAXIUM OF QUANTUM NUMBER L              [1]      10
  3D PLOT NUMBER OF r COORDINATES         [1]     200 
  3D PLOT NUMBER OF theta COORDINATES     [1]     200 
  -
@@ -53,18 +51,18 @@ OPTION
 ============================================================
  -------------------------------------------  ------.------
  [UNIT]
- COUTION: Default unit system is au  
-    USE ENERGY UNIT eV                 [Y/N]       YES  
-    USE degree INSTEAD OF radian       [Y/N]       YES  
+    COUTION: Default unit system is a.u. 
+    USE ENERGY UNIT eV                 [Y/N]       NO 
+    USE degree INSTEAD OF radian       [Y/N]       NO 
  [OUTPUT FILE]
-    POTENTIAL FUNCTION                 [Y/N]       YES   
-    BASIS FUNCTION                     [Y/N]       YES    
-    CROSS SECTION FUNCTION             [Y/N]       YES  
+    POTENTIAL FUNCTION                 [Y/N]       NO  
+    BASIS FUNCTION                     [Y/N]       YES  
+    CROSS SECTION FUNCTION             [Y/N]       NO  
     INNER REGION WAVE FUNCTION         [Y/N]       NO 
     OUTER REGION WAVE FUNCTION         [Y/N]       NO
  [SPECIAL CALCULATION]
- COUTION: OUTPUT FILE option would be invalid. 
- COUTION: KINETIC ENERGY value would be maxium one. 
+    COUTION: OUTPUT FILE option would be invalid. 
+    COUTION: KINETIC ENERGY value would be maxium one. 
     KINETIC ENERGY vs CROSS SECTION    [Y/N]       NO  
     KINETIC ENERGY vs PHASE            [Y/N]       NO 
     KINETIC ENERGY vs LIFETIME         [Y/N]       NO 

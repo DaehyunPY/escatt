@@ -2,9 +2,9 @@ module hamiltonian
     use kind_type
     use global 
     implicit none
-    real(dp), save, allocatable, protected :: coord_rho(:), coord_weight(:)
-    real(dp), save, protected :: dr_p_drho
-    real(dp), save, protected :: dtheta, dE 
+    real(dp), allocatable, private, protected :: X(:, :)
+    real(dp), save, allocatable,    protected :: coord_rho(:), coord_weight(:), coord_dshape(:, :)
+    real(dp), save, protected :: dr_p_drho, dtheta, dE 
     real(dp), save, private, protected :: &
         Z, alphab, cutoff, &   ! general 
         z0, z1, z2, &          ! II-1 GELTMAN
@@ -42,40 +42,27 @@ end function coord_E
 ! OPERATOR 
 ! ==================================================
 ! nabla --------------------------------------------
-function Delta_rho(j, k)
+! function Nabla_rho(i, j)
+!     use math_const, only: pi => math_pi 
+!     integer(i4), intent(in) :: i, j 
+!     real   (qp) :: sum 
+!     real   (dp) :: Nabla_rho
+!     integer(i4) :: k, n 
+! end function Nabla_rho
+! delta --------------------------------------------
+function Delta_rho(i, j)
     use math_const, only: pi => math_pi 
-    integer(i4), intent(in) :: j, k
-    real   (dp) :: Delta_rho, qj, qk, n 
-    qj = coord_rho(j)
-    qk = coord_rho(k)
-    n  = dble(size(coord_rho(:))) ! coord_rho(0:N)
-    if(j /= k) then 
-        Delta_rho = &
-            (2_dp*qj/((qj -qk)*(1_dp -qj**2_dp)) -2_dp/(qj -qk)**2_dp) &
-            *((1_dp -qk**2_dp)/(1_dp -qj**2_dp))**0.5_dp 
-    else if(j == k) then 
-        Delta_rho = & 
-            (-(n -1_dp)*(n +2_dp) +(n**2_dp +n +6_dp)*qj**2_dp) &
-            /(3_dp*(1_dp -qj**2_dp)**2_dp)
-    end if
+    integer(i4), intent(in) :: i, j 
+    real   (qp) :: sum 
+    real   (dp) :: Delta_rho
+    integer(i4) :: k, n  
+    n   = dble(size(coord_rho(:))) -1 
+    sum = 0_dp 
+    do k = 0, n 
+        sum = sum -coord_dshape(i, k)*coord_dshape(j, k)
+    end do 
+    Delta_rho = sum 
 end function Delta_rho
-! nabla --------------------------------------------
-function Nabla_rho(j, k)
-    use math_const, only: pi => math_pi 
-    integer(i4), intent(in) :: j, k
-    real   (dp) :: Nabla_rho, qj, qk, n 
-    qj = coord_rho(j)
-    qk = coord_rho(k)
-    n  = dble(size(coord_rho(:))) ! coord_rho(0:N)
-    if(j /= k) then 
-        Nabla_rho = &
-            1_dp/(qj -qk) &
-            *((1_dp -qk**2_dp)/(1_dp -qj**2_dp))**0.5_dp 
-    else if(j == k) then 
-        Nabla_rho = & 
-            qj/(1_dp -qj)
-    end if
-end function Nabla_rho
 ! potential ----------------------------------------
 function Poten_r(r)
     real(dp), intent(in) :: r
@@ -108,7 +95,7 @@ function angular_r(l, r)
     real   (dp), intent(in) :: r 
     integer(i4), intent(in) :: l 
     real   (dp) :: angular_r 
-    angular_r = 1_dp/(2_dp*Mass)*dble(l)*(dble(l) +1_dp)/r**2_dp
+    angular_r = 1_dp/2_dp*dble(l)*(dble(l) +1_dp)/r**2_dp
 end function angular_r
 
 
@@ -116,23 +103,28 @@ end function angular_r
 ! CALCULATION 
 ! ==================================================
 ! dsbev diagonalization ----------------------------
-subroutine diag(AB, W, Z)
-    real    (dp), intent(in)  :: AB(1:, 1:)
-    real    (dp), intent(out) :: W(1:), Z(1:, 1:)
-    character(1), parameter   :: jobz = 'Vectors', uplo = 'Upper'
-    integer (i8), parameter   :: kd   = 1 
+subroutine diag
+    character(1), parameter :: jobz = 'No vectors', uplo = 'Upper'
+    integer (i8), parameter :: kd   = 1 
     integer (i8) :: n, ldab, ldz 
     integer (i1) :: info 
-    real    (dp), allocatable :: work(:)
+    real    (dp), allocatable :: W(:), Z(:, :), work(:)
 
-    n    = size(AB(1, :))
-    ldab = size(AB(:, 1))
+    n    = size(X(1, :))
+    ldab = size(X(:, 1))
+    if(allocated(W)    == .false.) allocate(W(1:n))
+    if(allocated(Z)    == .false.) allocate(Z(1, 1))
+    if(allocated(work) == .false.) allocate(work(1:3*n -2))
     ldz  = size(Z (:, 1)) 
-    allocate(work(1:3*n -2))
     info = 0
-    call DSBEV(jobz, uplo, n, kd, AB, ldab, W, Z, ldz, work, info)
+    call DSBEV(jobz, uplo, n, kd, X, ldab, W, Z, ldz, work, info)
     if(info /= 0) stop "SUBROUTINE diag: Error. (1)"
-    deallocate(work)
+
+    X(:, :) = 0_dp 
+    X(1, :) = W(:)
+    if(allocated(W)    == .true.) deallocate(W)
+    if(allocated(Z)    == .true.) deallocate(Z)
+    if(allocated(work) == .true.) deallocate(work)
 end subroutine diag
 
 
@@ -152,24 +144,33 @@ subroutine PROC_input
     use math_const, only: pi => math_pi
     use unit_const, only: other_e_eV, au_hartree
     character(30), parameter :: &
-        form_part  = '(4/, 2(45X, 1F15.8, /), /)'
+        form_part  = '(5/, 2(45X, 1F15.8, /), /)'
     character(60), parameter :: & 
         form_poten = '(4/, 1(45X, 1I15, /), 3(45X, 1F15.8, /))'
     character(30), parameter :: &
-        form_p1    = '(18/)', &
-        form_p2    = '(  /, 3(45X, 1F15.8, /), 14/)', &
-        form_p3    = '( 5/, 3(45X, 1F15.8, /), 10/)', &
-        form_p4    = '( 9/, 4(45X, 1F15.8, /),  5/)', &
-        form_p5    = '(14/, 3(45X, 1F15.8, /),   /)'
+        form_p1    = '(19/)', &
+        form_p2    = '(  /, 3(45X, 1F15.8, /), 15/)', &
+        form_p3    = '( 6/, 3(45X, 1F15.8, /), 10/)', &
+        form_p4    = '(10/, 4(45X, 1F15.8, /),  5/)', &
+        form_p5    = '(15/, 3(45X, 1F15.8, /),   /)'
     character(60), parameter :: &
         form_cal   = '(4/, 1(45X, 1F15.8, /), 5(45X, 1I15, /), /)'
     character(90), parameter :: &
         form_opt   = '(6/, 2(45X, 6X, 1A1, /), /, 5(45X, 6X, 1A1, /), 3/, 3(45X, 6X, 1A1, /))'
     real     (dp), parameter :: eV_to_au = other_e_ev/au_hartree
-    real     (dp) :: unit_e
+    real     (dp) :: tmp1, tmp2 
 
     open(file_input, file = "input.d")
-    read(file_input, form_part)  Mass, Scatt
+    read(file_input, form_part)  tmp1, tmp2 
+    if(tmp1 > 0_dp) then 
+        Scatt = tmp1 
+    else if(tmp2 > 0_dp) then 
+        Scatt = tmp2*eV_to_au
+    else if(tmp1 > 0_dp .and. tmp2 > 0_dp) then 
+        stop "SUBROUTINE PROC_input: Check scattering energy value."
+    else if(tmp1 < 0_dp .and. tmp2 < 0_dp) then 
+        stop "SUBROUTINE PROC_input: Check scattering energy value."
+    end if 
     read(file_input, form_poten) ty, Z, alphab, cutoff
     if(ty == 1) then 
         read(file_input, form_p1) 
@@ -198,18 +199,20 @@ subroutine PROC_input
     read (file_input, form_opt) op_ev, op_degree, op_poten, op_basis, op_dcs, op_inner, op_outer, op_tcs, op_phase, op_lt 
     close(file_input) 
     open (file_log, file = "output/log.d")
-
-    unit_e = 1_dp 
-    if(op_ev == "Y") unit_e = eV_to_au
     
     if(pr > N) pr = N 
-    Scatt  = Scatt*unit_e
     dtheta = pi/dble(ptheta)
     dE     = Scatt/dble(M) 
 
-    allocate(coord_rho(0:N), coord_weight(0:N))
-    allocate(H(1:N, 1:N), E(1:N))
-    allocate(R(0:L), K(0:L), S(0:L), A(0:L))
+    if(allocated(coord_rho)    == .false.) allocate(coord_rho   (0:N))
+    if(allocated(coord_weight) == .false.) allocate(coord_weight(0:N))
+    if(allocated(coord_dshape) == .false.) allocate(coord_dshape(0:N, 0:N))
+    if(allocated(H) == .false.) allocate(H(1:N, 1:N))
+    if(allocated(E) == .false.) allocate(E(1:N))
+    if(allocated(R) == .false.) allocate(R(0:L))
+    if(allocated(K) == .false.) allocate(K(0:L))
+    if(allocated(S) == .false.) allocate(S(0:L))
+    if(allocated(A) == .false.) allocate(A(0:L))
 
     if(op_tcs == "N" .and. op_phase == "N" .and. op_lt == "N") then 
         M  = 1
@@ -232,7 +235,6 @@ subroutine PROC_inform
     write(file_log, *) "PARTICLE: ELECTRON"
     write(file_log, *) "================================================================="
     write(file_log, *) " -------------------------------------------  ------------------ "
-    write(file_log, *) " MASS                                   [au] ", Mass 
     write(file_log, *) " KINETIC ENERGY                         [au] ", Scatt
     write(file_log, *) "                                        [eV] ", Scatt*au_to_eV
     write(file_log, *) " - "
@@ -324,54 +326,91 @@ end subroutine PROC_inform
 ! end information ----------------------------------
 ! coordination -------------------------------------
 subroutine PORC_coord
-    real   (dp), allocatable :: X(:, :), U(:, :)
+    use gsl_special, only: gsl_sf_legendre_Pl
     real   (dp) :: tmp, sign 
-    integer(i4) :: n, i, j
+    real   (qp) :: sum 
+    integer(i4) :: n, i, j, k 
     
-    n = size(coord_rho(:)) ! coord_rho(0:N)
-    allocate(X(1:2, 1:n), U(1:n, 1:n))
+    n = size(coord_rho(:)) -2 
+    if(allocated(X) == .false.) allocate(X(1:2, 1:n))
     X = 0_dp 
-    do i = 1, n
-        do j = i, min(n, i +1)
-            tmp = dble(i)/((2_dp*dble(i) -1_dp)*(2_dp*dble(i) +1_dp))**0.5_dp
-            if(j == i) tmp = 0_dp 
-            X(2 +i -j, j) = tmp 
+    do i = 1, n -1 
+        tmp = (dble(i)*dble(i +2))/(dble(2*i +1)*dble(2*i +3))
+        tmp = tmp**0.5_dp  
+        X(1, i +1) = tmp 
+    end do 
+    call diag
+    
+    n   = size(coord_rho(:)) -1 
+    tmp = 2_dp/(dble(n +1)*dble(n))
+    coord_rho   (0) = -1_dp
+    coord_weight(0) = tmp 
+    do i = 1, n -1
+        coord_rho   (i) = X(1, i)
+        coord_weight(i) = tmp/(gsl_sf_legendre_Pl(n, coord_rho(i)))**2_dp 
+    end do 
+    coord_rho   (n) = 1_dp
+    coord_weight(n) = tmp 
+    dr_p_drho = ra/(coord_rho(n) -coord_rho(0))
+    if(allocated(X) == .true.) deallocate(X) 
+
+    do i = 0, n 
+        do j = 0, n 
+            if(i == j) then 
+                sum = 0_dp 
+                do k = 0, n 
+                    if(k /= i) then 
+                        sum = sum +1_dp/(coord_rho(i) -coord_rho(k))
+                    end if 
+                end do 
+            else if(i /= j) then 
+                sum = 1_dp/(coord_rho(i) -coord_rho(j))
+                do k = 0, n 
+                    if(k /= i .and. k /= j) then 
+                        sum = sum*(coord_rho(j) -coord_rho(k))/(coord_rho(i) -coord_rho(k))
+                    end if 
+                end do 
+            end if 
+            sum = sum*(coord_weight(j)/coord_weight(i))**0.5_dp
+            coord_dshape(i, j) = sum 
         end do 
     end do 
-    call diag(X, coord_rho, U)
-    
-    n = size(coord_rho(:)) -1 ! coord_rho(0:N)
-    do i = 0, n 
-        coord_weight(i) = 2_dp*U(1, i +1)**2_dp
-    end do 
-    dr_p_drho = ra/(coord_rho(n) -coord_rho(0))
-    deallocate(X, U)
 end subroutine PORC_coord
 ! end coordination ---------------------------------
 ! potential plot -----------------------------------
 subroutine PROC_Poten_plot
-    integer  (i1), parameter :: file_poten = 101
-    character(30), parameter :: form_poten = '(30ES25.10)'
+    use gsl_special, only: gsl_sf_legendre_Pl
+    integer  (i1), parameter :: file_poten = 101, file_coord = 102 
+    character(30), parameter :: form_gen   = '(30ES25.10)'
     integer  (i4) :: i 
 
     open(file_poten, file = "output/poten.d")
     do i = 1, N, N/pr 
-        write(file_poten, form_poten) coord_r(i), Poten_r(coord_r(i))
+        write(file_poten, form_gen) coord_r(i), Poten_r(coord_r(i))
     end do
     close(file_poten)
 
-    open(file_poten, file = "output/coord.d") ! for test 
-    do i = 0, N 
-        write(file_poten, form_poten) coord_r(i), coord_rho(i), coord_weight(i)
+    open(file_coord, file = "output/coord.d")
+    write(file_coord, form_gen) coord_r(0), coord_rho(0), coord_weight(0)
+    do i = 1, N -1 
+        write(file_coord, form_gen) coord_r(i), coord_rho(i), coord_weight(i), & 
+            N*(coord_rho(i)*gsl_sf_legendre_Pl(N, coord_rho(i)) -gsl_sf_legendre_Pl(N -1_i4, coord_rho(i)))/(coord_rho(i)**2_dp -1_dp)
     end do 
-    close(file_poten)
+    write(file_coord, form_gen) coord_r(N), coord_rho(N), coord_weight(N)
+    close(file_coord)
 end subroutine PROC_Poten_plot
 ! end potential plot -------------------------------
 ! out ----------------------------------------------
 subroutine PROC_out 
-    deallocate(coord_rho, coord_weight)
-    deallocate(H, E)
-    deallocate(R, K, S, A)
+    if(allocated(coord_rho)    == .true.) deallocate(coord_rho)
+    if(allocated(coord_weight) == .true.) deallocate(coord_weight)
+    if(allocated(coord_dshape) == .true.) deallocate(coord_dshape)
+    if(allocated(H) == .true.) deallocate(H)
+    if(allocated(E) == .true.) deallocate(E)
+    if(allocated(R) == .true.) deallocate(R)
+    if(allocated(K) == .true.) deallocate(K)
+    if(allocated(S) == .true.) deallocate(S)
+    if(allocated(A) == .true.) deallocate(A)
     close(file_log)
 end subroutine PROC_out 
 ! end out ------------------------------------------

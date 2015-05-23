@@ -9,22 +9,22 @@ program main
     use outer,       only: PROC_CS_achive, PROC_CS_plot, PROC_outer_plot, PROC_E_vs_CS_plot
     implicit none
     character(30), parameter :: form_out = '(1A25, 5X, 1ES15.3)'
-    real   (SP) :: tt, t0, t1, t2 
-    integer(I4) :: i, j 
+    real     (sp) :: tt, t0, t1, t2 
+    integer  (i4) :: i, j 
 
     call cpu_time(tt)
     call cpu_time(t1)
     write(*, *) "Reading input file..."
-    call PROC_input  
+    call PROC_input
     write(file_log, *) "[PROCESS INPUT]"
     write(file_log, *)
         call PROC_inform
         call PORC_coord
-        if(op_poten == "Y") then 
-            call PROC_Poten_plot 
+        if(op_poten == "Y") then
+            call PROC_Poten_plot
             write(file_log, *) "Potential function is ploted."
-        end if 
-        write(file_log, *) 
+        end if
+        write(file_log, *)
     call cpu_time(t2)
     write(file_log, form_out) "PROCESS RUNNING TIME: ", t2 -t1 
     write(file_log, *) 
