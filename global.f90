@@ -1,8 +1,8 @@
 module global 
     implicit none
-    real(8), parameter ::   r_a = 20.d0
+    real(8), parameter ::    ra = 20.d0 
     integer, parameter ::     N = 1000
-    real(8), parameter ::    dr = r_a/dble(N)
+    real(8), parameter ::    dr = ra/dble(N)
     real(8), parameter ::  Mass = 1.d0
     real(8), parameter :: Kinet = 1.d0 
     real(8), save :: H(1:N, 1:N), E(1:N)
