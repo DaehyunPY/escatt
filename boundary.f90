@@ -9,7 +9,7 @@ subroutine mat_R(l)
     character(30), parameter  :: form_out = '(1A15, 1I15, 1ES15.3)'
     integer  (i4), intent(in) :: l 
     real     (qp) :: sum 
-    integer  (i4) :: i, j 
+    integer  (i4) :: i
 
     sum = 0.d0 
     do i = 1, N 
@@ -63,13 +63,13 @@ subroutine mat_A(l)
     complex  (dp) :: sign 
     real     (dp) :: tmp1, tmp2 
 
-    if(mod(l, 4) == 0) then 
+    if(mod(l, 4_i4) == 0_i4) then 
         sign = 1.d0 
-    else if(mod(l, 4) == 1) then 
+    else if(mod(l, 4_i4) == 1_i4) then 
         sign = i 
-    else if(mod(l, 4) == 2) then 
+    else if(mod(l, 4_i4) == 2_i4) then 
         sign = -1.d0 
-    else if(mod(l, 4) == 3) then 
+    else if(mod(l, 4_i4) == 3_i4) then 
         sign = -i 
     end if 
     tmp1 = (1.d0 +real(S(l)))/2.d0 

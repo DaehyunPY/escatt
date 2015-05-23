@@ -16,18 +16,21 @@ OBJECTS     = $(COMMON_MOD1:.f=.o) $(COMMON_MOD2:.for=.o) $(COMMON_MOD3:.f90=.o)
 # f  : (ibm language) punchcard fortran file
 
 # # gnu compiler: 
-# FORTRAN = gfortran
-# FFLAGS += -fimplicit-none -fbounds-check
+# # FORTRAN = gfortran
+# FORTRAN = /usr/local/bin/gfortran
+# FFLAGS += -Wall -fimplicit-none -fbounds-check -O -Wuninitialized
+# FFLAGS += -ffpe-trap=invalid, zero, overflow -fbacktrace
 # FFLAGS1 = -std=legacy -x f77
 # FFLAGS2 = -std=legacy
-# # FFLAGS3 = 
+# FFLAGS3 = -pedantic -std=f95 
 
 # intel compiler: 
 FORTRAN = ifort
-# FFLAGS += 
+FFLAGS += -warn all -check bounds -check uninit
+FFLAGS += -fpe0 -traceback
 FFLAGS1 = -nostand -f66 
 FFLAGS2 = -nostand 
-# FFLAGS3 = 
+FFLAGS3 = -std 
 
 # # gnu lapack library: 
 # # FFLAGS  += -I/usr/include

@@ -18,8 +18,8 @@ program main
     call PROC_input
     write(file_log, *) "[PROCESS INPUT]"
     write(file_log, *)
-        call PROC_inform
-        call PORC_coord
+            call PROC_inform
+            call PORC_coord
         if(op_poten == "Y") then
             call PROC_Poten_plot
             write(file_log, *) "Potential function is ploted."
@@ -42,17 +42,23 @@ program main
         Scatt = coord_E(j)
         do i = 0, L 
             call cpu_time(t1)
-                write(file_log, *) "ROUND", i, coord_E(j)
+            write(file_log, *) "ROUND", i, coord_E(j)
                 call PROC_H(i) 
-                if(op_basis == "Y") call PROC_basis_plot(i)
+                if(op_basis == "Y") &
+                call PROC_basis_plot(i)
+                if((op_dcs == "Y" .or. op_inner == "Y" .or. op_outer == "Y") .or. &
+                    (op_tcs == "Y" .or. op_phase == "Y" .or. op_lt == "Y")) & 
                 call PROC_boundary_mat(i) 
+                if(op_inner == "Y") & 
                 call PROC_inner_achive(i)
             call cpu_time(t2) 
             write(file_log, form_out) "RUNNING TIME: ", t2 -t1
             write(file_log, *) 
         end do 
-        if(op_basis == "Y") write(file_log, *) "Basis function is ploted."
-        if(M /= 1) call PROC_CS_achive(j)
+        if(op_basis == "Y") & 
+        write(file_log, *) "Basis function is ploted."
+        if(op_tcs == "Y" .or. op_phase == "Y" .or. op_lt == "Y") & 
+        call PROC_CS_achive(j)
         write(file_log, *)
     end do 
     call cpu_time(t2) 
@@ -94,7 +100,7 @@ program main
     write(file_log, *)
     write(file_log, *)
     write(file_log, *)
-    write(*, *) "Calculating over."
+    write(*, *) "Ploting over."
 
     write(file_log, *) "PROGRAM OVER"
     write(file_log, *)

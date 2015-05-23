@@ -65,7 +65,7 @@ subroutine PROC_CS_plot
     unit_theta = 1_dp 
     if(op_degree == "Y") unit_theta = radian_to_degree
 
-    if(allocated(outer_f) == .false.) allocate(outer_f(0:L))
+    if(.not. allocated(outer_f)) allocate(outer_f(0:L))
     call mat_f 
 
     open(file_tcs, file = "output/total_cs.d")
@@ -94,7 +94,7 @@ subroutine PROC_CS_plot
 ! !         write(file_dcs, form_cs) dble(i), real(outer_f(i)), aimag(outer_f(i))
 !     end do 
     close(file_dcs)
-    if(allocated(outer_f) == .true.) deallocate(outer_f)
+    if(allocated(outer_f)) deallocate(outer_f)
 end subroutine PROC_CS_plot
 ! end cs plot --------------------------------------
 ! outer plot ---------------------------------------
@@ -117,7 +117,7 @@ subroutine PROC_outer_plot
     sum = 0.d0 
     do i = 1, N, N/pr 
         r = ra +dr*dble(i)
-        sum = outer_u(0, r)
+        sum = outer_u(0_i4, r)
         write(file_psi1, form_psi) r, dble(abs(sum)**2.d0)
     end do 
     close(file_psi1)
@@ -148,8 +148,8 @@ subroutine PROC_CS_achive(j)
     complex  (dp) :: tmp 
     integer  (i4) :: i
 
-    if(allocated(CS)      == .false.) allocate(CS(1:M))
-    if(allocated(outer_f) == .false.) allocate(outer_f(0:L))
+    if(.not. allocated(CS))      allocate(CS(1:M))
+    if(.not. allocated(outer_f)) allocate(outer_f(0:L))
     call mat_f 
 
     sum = 0.d0 
@@ -161,7 +161,7 @@ subroutine PROC_CS_achive(j)
     tmp   = sum 
     CS(j) = aimag(tmp)
     write(file_log, form_out) "total sigma: ", aimag(tmp)
-    if(allocated(outer_f) == .true.) deallocate(outer_f)
+    if(allocated(outer_f)) deallocate(outer_f)
 end subroutine PROC_CS_achive
 ! end cs achive ------------------------------------
 ! e vs cs plot -------------------------------------
@@ -181,7 +181,7 @@ subroutine PROC_E_vs_CS_plot
     do j = 1, M 
         write(file_cs, form_cs) coord_E(j)*unit_e, CS(j) 
     end do 
-    if(allocated(CS) == .true.) deallocate(CS)
+    if(allocated(CS)) deallocate(CS)
     close(file_cs)
 end subroutine PROC_E_vs_CS_plot
 ! end e vs cs plot ---------------------------------

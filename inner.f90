@@ -8,7 +8,7 @@ contains
     
 
 subroutine inner_coeff(l)
-    use math_const, only: i => math_i 
+    use math_const,  only: i => math_i 
     use gsl_special, only: gsl_sf_bessel_jsl, gsl_sf_bessel_ysl
     integer(i4), intent(in) :: l 
     real   (dp) :: ka, sb_j, sb_y, tmp2 
@@ -43,8 +43,8 @@ subroutine PROC_inner_achive(l)
     complex(qp) :: sum 
     integer(i4) :: i, j
 
-    if(allocated(inner_u) == .false.) allocate(inner_u(0:L, 1:N))
-    if(allocated(inner_a) == .false.) allocate(inner_a(1:N))
+    if(.not. allocated(inner_u)) allocate(inner_u(0:L, 1:N))
+    if(.not. allocated(inner_a)) allocate(inner_a(1:N))
     call inner_coeff(l) 
     do i = 1, N 
         sum = 0.d0 
@@ -53,7 +53,7 @@ subroutine PROC_inner_achive(l)
         end do 
         inner_u(l, i) = sum 
     end do 
-    if(allocated(inner_a) == .true.) deallocate(inner_a)
+    if(allocated(inner_a)) deallocate(inner_a)
 end subroutine PROC_inner_achive
 ! end inner achive ---------------------------------
 ! inner plot ---------------------------------------
@@ -91,7 +91,7 @@ subroutine PROC_inner_plot
         end do 
         write(file_psi2, form_psi) 
     end do 
-    if(allocated(inner_u) == .true.) deallocate(inner_u)
+    if(allocated(inner_u)) deallocate(inner_u)
     close(file_psi2)
 end subroutine PROC_inner_plot
 ! end inner plot -----------------------------------
