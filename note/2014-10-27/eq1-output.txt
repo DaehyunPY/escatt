@@ -1,0 +1,2905 @@
+Last login: Mon Oct 27 15:31:46 on ttys003
+diamond:q1-2 boundary condition hyuna917$ rmaxima
+Maxima 5.33.0 http://maxima.sourceforge.net
+using Lisp SBCL 1.2.2
+Distributed under the GNU Public License. See the file COPYING.
+Dedicated to the memory of William Schelter.
+The function bug_report() provides bug reporting information.
+/* 方程式 */
+
+/* 変数 宣言 */
+a : 0;
+(%o1)                                  0
+dx;
+(%o2)                                 dx
+assume( dx > 0 );
+(%o3)                              [dx > 0]
+N;
+(%o4)                                  N
+assume( N > 0 );
+(%o5)                               [N > 0]
+(%i6) 
+/* 座標、関数 宣言 */
+x(i) := a +dx*i;
+(%o6)                          x(i) := a + dx i
+b : dx*N +a;
+(%o7)                                dx N
+phi(n, x) := (2/(b-a))**(1/2) * sin((n -1/2)*%pi*(x-a)/(b-a));
+                                                1
+                                           (n - -) %pi (x - a)
+                               2   1/2          2
+(%o8)          phi(n, x) := (-----)    sin(-------------------)
+                             b - a                b - a
+define( ddphi(n, x), diff( diff( phi(n, x), x), x));
+
+/* 変数 変換 */
+                                                               1
+                                                      %pi (n - -) x
+                                       2      1 2              2
+                            sqrt(2) %pi  (n - -)  sin(-------------)
+                                              2           dx N
+(%o9)      ddphi(n, x) := - ----------------------------------------
+                                             5/2  5/2
+                                           dx    N
+(%i10) T_ij : dx* sum( phi(n, x(i)) * ddphi(n, x(j)), n, 1, N -1);
+                  N - 1                         1                  1
+                  ====               %pi i (n - -)      %pi j (n - -)
+                2 \          1 2                2                  2
+           2 %pi   >    (n - -)  sin(-------------) sin(-------------)
+                  /          2             N                  N
+                  ====
+                  n = 1
+(%o10)   - -----------------------------------------------------------
+                                       2  3
+                                     dx  N
+f1: A = (i -j);
+(%o11)                             A = i - j
+f2: B = (i +j);
+(%o12)                             B = j + i
+assume ( B >= 0);
+(%o13)                             [B >= 0]
+solve ( [f1, f2], [i, j]);
+                                B + A        A - B
+(%o14)                    [[i = -----, j = - -----]]
+                                  2            2
+T_ab : ev( T_ij, %);
+              N - 1                       1                        1
+              ====               %pi (n - -) (A - B)      %pi (n - -) (B + A)
+            2 \          1 2              2                        2
+       2 %pi   >    (n - -)  sin(-------------------) sin(-------------------)
+              /          2               2 N                      2 N
+              ====
+              n = 1
+(%o15) -----------------------------------------------------------------------
+                                         2  3
+                                       dx  N
+trigreduce(%, A);
+trigreduce(%, B);
+             N - 1
+             ====
+           2 \         2     %pi n B   %pi B            %pi n B   %pi B
+(%o16) (%pi   >    (4 n  cos(------- - -----) - 4 n cos(------- - -----)
+             /                  N       2 N                N       2 N
+             ====
+             n = 1
+       %pi n B   %pi B       2     %pi n A   %pi A            %pi n A   %pi A
+ + cos(------- - -----) - 4 n  cos(------- - -----) + 4 n cos(------- - -----)
+          N       2 N                 N       2 N                N       2 N
+       %pi n A   %pi A         2  3
+ - cos(------- - -----)))/(4 dx  N )
+          N       2 N
+(%i17)              N - 1
+             ====
+           2 \         2     %pi n B   %pi B            %pi n B   %pi B
+(%o17) (%pi   >    (4 n  cos(------- - -----) - 4 n cos(------- - -----)
+             /                  N       2 N                N       2 N
+             ====
+             n = 1
+       %pi n B   %pi B       2     %pi n A   %pi A            %pi n A   %pi A
+ + cos(------- - -----) - 4 n  cos(------- - -----) + 4 n cos(------- - -----)
+          N       2 N                 N       2 N                N       2 N
+       %pi n A   %pi A         2  3
+ - cos(------- - -----)))/(4 dx  N )
+          N       2 N
+trigsimp(%);
+T_ab : %;
+
+
+/* 三角関数を指数関数に直して解く */
+simpsum: ture;
+
+             N - 1
+             ====
+           2 \          2                (2 %pi n - %pi) B
+(%o18) (%pi   >    ((4 n  - 4 n + 1) cos(-----------------)
+             /                                  2 N
+             ====
+             n = 1
+                              2                (2 %pi n - %pi) A         2  3
+                      + (- 4 n  + 4 n - 1) cos(-----------------)))/(4 dx  N )
+                                                      2 N
+(%i19)              N - 1
+             ====
+           2 \          2                (2 %pi n - %pi) B
+(%o19) (%pi   >    ((4 n  - 4 n + 1) cos(-----------------)
+             /                                  2 N
+             ====
+             n = 1
+                              2                (2 %pi n - %pi) A         2  3
+                      + (- 4 n  + 4 n - 1) cos(-----------------)))/(4 dx  N )
+                                                      2 N
+(%i20) (%o20)                               ture
+/* t_ab : 0 でないとき */
+exp( %i * %pi/N * (n -1/2) * x); 
+                               %i %pi (n - 1/2) x
+                               ------------------
+                                       N
+(%o21)                       %e
+sum( %, n, 1, N -1);
+                        %i %pi x                 %i %pi x
+                      - --------                 --------
+                          2 N       %i %pi x        N
+                    %e           (%e         - %e        )
+(%o22)              --------------------------------------
+                                  %i %pi x
+                                  --------
+                                     N
+                                %e         - 1
+(%i23) diff( diff( %, x), x); 
+                                                                      %i %pi x
+                    %i %pi x   %i %pi x                               --------
+                  - --------   --------                                  N
+                      2 N         N               %i %pi x   %i %pi %e
+         %i %pi %e           %e         (%i %pi %e         - -----------------)
+                                                                     N
+(%o23) - ----------------------------------------------------------------------
+                                       %i %pi x
+                                       --------
+                                          N         2
+                                  N (%e         - 1)
+                                                     %i %pi x
+              %i %pi x                               --------
+            - --------                                  N
+                2 N              %i %pi x   %i %pi %e
+   %i %pi %e           (%i %pi %e         - -----------------)
+                                                    N
+ - -----------------------------------------------------------
+                            %i %pi x
+                            --------
+                               N
+                       N (%e         - 1)
+                                                   %i %pi x
+            %i %pi x                               --------
+            --------                                  N
+              2 N              %i %pi x   %i %pi %e
+   %i %pi %e         (%i %pi %e         - -----------------)
+                                                  N
+ - ---------------------------------------------------------
+                           %i %pi x
+                           --------
+                              N         2
+                      N (%e         - 1)
+                        %i %pi x
+       %i %pi x         --------
+     - --------     2      N
+         2 N     %pi  %e              2   %i %pi x
+   %e           (--------------- - %pi  %e        )
+                        2
+                       N
+ + ------------------------------------------------
+                      %i %pi x
+                      --------
+                         N
+                    %e         - 1
+            %i %pi x                 %i %pi x    %i %pi x
+          - --------                 --------    --------
+      2       2 N       %i %pi x        N           N
+   %pi  %e           (%e         - %e        ) %e
+ - ------------------------------------------------------
+                           %i %pi x
+                           --------
+                      2       N         2
+                   2 N  (%e         - 1)
+            %i %pi x                 %i %pi x    %i %pi x
+            --------                 --------    --------
+        2     2 N       %i %pi x        N           N
+   2 %pi  %e         (%e         - %e        ) %e
+ - ------------------------------------------------------
+                          %i %pi x
+                          --------
+                     2       N         3
+                    N  (%e         - 1)
+            %i %pi x                 %i %pi x
+          - --------                 --------
+      2       2 N       %i %pi x        N
+   %pi  %e           (%e         - %e        )
+ - -------------------------------------------
+                      %i %pi x
+                      --------
+                 2       N
+              4 N  (%e         - 1)
+          %i %pi x                 %i %pi x
+          --------                 --------
+      2     2 N       %i %pi x        N
+   %pi  %e         (%e         - %e        )
+ + -----------------------------------------
+                    %i %pi x
+                    --------
+               2       N         2
+            2 N  (%e         - 1)
+                   %pi x          %pi x           %pi x
+(%o24) - (%pi (sin(-----) (2 (cos(-----) - 1) sin(-----)
+                    2 N             N               N
+                      %pi x
+              %pi sin(-----)
+      %pi x             N
+ (sin(-----) (-------------- - %pi sin(%pi x))
+        N           N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ + cos(-----) (%pi cos(%pi x) - --------------))
+         N                            N
+         %pi x      2      2 %pi x        %pi x
+ + ((cos(-----) - 1)  - sin (-----)) (cos(-----)
+           N                   N            N
+          %pi x
+  %pi sin(-----)
+            N                            %pi x
+ (-------------- - %pi sin(%pi x)) - sin(-----)
+        N                                  N
+                           %pi x
+                   %pi cos(-----)
+                             N             %pi x
+ (%pi cos(%pi x) - --------------))) - cos(-----)
+                         N                  2 N
+        %pi x      2      2 %pi x        %pi x
+ (((cos(-----) - 1)  - sin (-----)) (sin(-----)
+          N                   N            N
+          %pi x
+  %pi sin(-----)
+            N                            %pi x
+ (-------------- - %pi sin(%pi x)) + cos(-----)
+        N                                  N
+                           %pi x
+                   %pi cos(-----)
+                             N               %pi x           %pi x
+ (%pi cos(%pi x) - --------------)) - 2 (cos(-----) - 1) sin(-----)
+                         N                     N               N
+                      %pi x
+              %pi sin(-----)
+      %pi x             N
+ (cos(-----) (-------------- - %pi sin(%pi x))
+        N           N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ - sin(-----) (%pi cos(%pi x) - --------------)))))
+         N                            N
+      2 %pi x         %pi x      2 2
+/((sin (-----) + (cos(-----) - 1) )  N)
+          N             N
+               %pi x         %pi x      2      2 %pi x
+ - (%pi (- sin(-----) (((cos(-----) - 1)  - sin (-----))
+                2 N            N                   N
+          %pi x
+  %pi sin(-----)
+            N                               %pi x           %pi x
+ (-------------- - %pi sin(%pi x)) + 2 (cos(-----) - 1) sin(-----)
+        N                                     N               N
+                           %pi x
+                   %pi cos(-----)
+                             N            %pi x
+ (%pi cos(%pi x) - --------------)) - cos(-----)
+                         N                 2 N
+                                                              %pi x
+                                                      %pi cos(-----)
+        %pi x      2      2 %pi x                               N
+ (((cos(-----) - 1)  - sin (-----)) (%pi cos(%pi x) - --------------)
+          N                   N                             N
+                                          %pi x
+                                  %pi sin(-----)
+          %pi x           %pi x             N
+ - 2 (cos(-----) - 1) sin(-----) (-------------- - %pi sin(%pi x)))))
+            N               N           N
+      2 %pi x         %pi x      2 2
+/((sin (-----) + (cos(-----) - 1) )  N)
+          N             N
+                                               %pi x
+                                       %pi sin(-----)
+             %pi x        %pi x                  N
+ - (%pi (sin(-----) ((cos(-----) - 1) (-------------- - %pi sin(%pi x))
+              2 N           N                N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ + sin(-----) (%pi cos(%pi x) - --------------))
+         N                            N
+                                                          %pi x
+                                                  %pi cos(-----)
+       %pi x        %pi x                                   N
+ - cos(-----) ((cos(-----) - 1) (%pi cos(%pi x) - --------------)
+        2 N           N                                 N
+                       %pi x
+               %pi sin(-----)
+       %pi x             N
+ - sin(-----) (-------------- - %pi sin(%pi x)))))
+         N           N
+      2 %pi x         %pi x      2            %pi x
+/((sin (-----) + (cos(-----) - 1) ) N) + (cos(-----)
+          N             N                      2 N
+                 2     %pi x
+              %pi  sin(-----)
+      %pi x              N         2
+ (sin(-----) (--------------- - %pi  sin(%pi x))
+        N            2
+                    N
+                        2     %pi x
+                     %pi  cos(-----)
+        %pi x                   N         2
+ + (cos(-----) - 1) (--------------- - %pi  cos(%pi x)))
+          N                 2
+                           N
+                                    2     %pi x
+                                 %pi  sin(-----)
+       %pi x        %pi x                   N         2
+ + sin(-----) ((cos(-----) - 1) (--------------- - %pi  sin(%pi x))
+        2 N           N                 2
+                                       N
+                  2     %pi x
+               %pi  cos(-----)
+       %pi x              N         2
+ - sin(-----) (--------------- - %pi  cos(%pi x))))
+         N            2
+                     N
+     2 %pi x         %pi x      2        2
+/(sin (-----) + (cos(-----) - 1) ) - (%pi
+         N             N
+      %pi x                     %pi x       %pi x
+ (cos(-----) ((sin(%pi x) - sin(-----)) sin(-----)
+       2 N                        N           N
+                     %pi x        %pi x
+ + (cos(%pi x) - cos(-----)) (cos(-----) - 1))
+                       N            N
+       %pi x        %pi x                         %pi x
+ + sin(-----) ((cos(-----) - 1) (sin(%pi x) - sin(-----))
+        2 N           N                             N
+                     %pi x       %pi x
+ - (cos(%pi x) - cos(-----)) sin(-----))))
+                       N           N
+        2 %pi x         %pi x      2   2
+/(4 (sin (-----) + (cos(-----) - 1) ) N )
+            N             N
+       2      %pi x                     %pi x
+ + (%pi  (cos(-----) ((cos(%pi x) - cos(-----))
+               2 N                        N
+       %pi x      2      2 %pi x            %pi x
+ ((cos(-----) - 1)  - sin (-----)) + 2 (cos(-----) - 1)
+         N                   N                N
+                   %pi x       %pi x         %pi x
+ (sin(%pi x) - sin(-----)) sin(-----)) - sin(-----)
+                     N           N            2 N
+                    %pi x         %pi x      2      2 %pi x
+ ((sin(%pi x) - sin(-----)) ((cos(-----) - 1)  - sin (-----))
+                      N             N                   N
+                       %pi x        %pi x           %pi x
+ - 2 (cos(%pi x) - cos(-----)) (cos(-----) - 1) sin(-----))))
+                         N            N               N
+        2 %pi x         %pi x      2 2  2
+/(2 (sin (-----) + (cos(-----) - 1) )  N )
+            N             N
+         2      %pi x                     %pi x
+ - (2 %pi  (cos(-----) ((cos(%pi x) - cos(-----))
+                 2 N                        N
+      %pi x          %pi x      2     %pi x       3 %pi x
+  sin(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+        N              N                N             N
+ (---------------------------------------------------------
+                 2 %pi x         %pi x      2 3
+             (sin (-----) + (cos(-----) - 1) )
+                     N             N
+       %pi x        %pi x      3          %pi x          2 %pi x
+   cos(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+         N            N                     N                N
+ + ---------------------------------------------------------------)
+                     2 %pi x         %pi x      2 3
+                 (sin (-----) + (cos(-----) - 1) )
+                         N             N
+                     %pi x
+ - (sin(%pi x) - sin(-----))
+                       N
+      %pi x        %pi x      3          %pi x          2 %pi x
+  sin(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+        N            N                     N                N
+ (---------------------------------------------------------------
+                    2 %pi x         %pi x      2 3
+                (sin (-----) + (cos(-----) - 1) )
+                        N             N
+       %pi x          %pi x      2     %pi x       3 %pi x
+   cos(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+         N              N                N             N
+ - ---------------------------------------------------------))
+                  2 %pi x         %pi x      2 3
+              (sin (-----) + (cos(-----) - 1) )
+                      N             N
+       %pi x                     %pi x
+ - sin(-----) ((sin(%pi x) - sin(-----))
+        2 N                        N
+      %pi x          %pi x      2     %pi x       3 %pi x
+  sin(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+        N              N                N             N
+ (---------------------------------------------------------
+                 2 %pi x         %pi x      2 3
+             (sin (-----) + (cos(-----) - 1) )
+                     N             N
+       %pi x        %pi x      3          %pi x          2 %pi x
+   cos(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+         N            N                     N                N
+ + ---------------------------------------------------------------)
+                     2 %pi x         %pi x      2 3
+                 (sin (-----) + (cos(-----) - 1) )
+                         N             N
+                     %pi x
+ + (cos(%pi x) - cos(-----))
+                       N
+      %pi x        %pi x      3          %pi x          2 %pi x
+  sin(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+        N            N                     N                N
+ (---------------------------------------------------------------
+                    2 %pi x         %pi x      2 3
+                (sin (-----) + (cos(-----) - 1) )
+                        N             N
+       %pi x          %pi x      2     %pi x       3 %pi x
+   cos(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+         N              N                N             N          2
+ - ---------------------------------------------------------))))/N
+                  2 %pi x         %pi x      2 3
+              (sin (-----) + (cos(-----) - 1) )
+                      N             N
+       2      %pi x                     %pi x
+ - (%pi  (sin(-----) ((sin(%pi x) - sin(-----))
+               2 N                        N
+         %pi x          2 %pi x        %pi x
+ (2 (cos(-----) - 1) sin (-----) + cos(-----)
+           N                N            N
+       %pi x      2      2 %pi x                        %pi x
+ ((cos(-----) - 1)  - sin (-----))) + (cos(%pi x) - cos(-----))
+         N                   N                            N
+      %pi x        %pi x      2      2 %pi x
+ (sin(-----) ((cos(-----) - 1)  - sin (-----))
+        N            N                   N
+          %pi x           %pi x      %pi x
+ - 2 (cos(-----) - 1) cos(-----) sin(-----)))
+            N               N          N
+       %pi x                     %pi x
+ + cos(-----) ((cos(%pi x) - cos(-----))
+        2 N                        N
+         %pi x          2 %pi x        %pi x
+ (2 (cos(-----) - 1) sin (-----) + cos(-----)
+           N                N            N
+       %pi x      2      2 %pi x                        %pi x
+ ((cos(-----) - 1)  - sin (-----))) - (sin(%pi x) - sin(-----))
+         N                   N                            N
+      %pi x        %pi x      2      2 %pi x
+ (sin(-----) ((cos(-----) - 1)  - sin (-----))
+        N            N                   N
+          %pi x           %pi x      %pi x
+ - 2 (cos(-----) - 1) cos(-----) sin(-----)))))
+            N               N          N
+        2 %pi x         %pi x      2 2  2
+/(2 (sin (-----) + (cos(-----) - 1) )  N )
+            N             N
+trigsimp(%);
+trigreduce(%);
+trigsimp(%);
+define( t_ab(x), %);
+
+/* t_ab : 0 のとき */
+-(n/2)**2;
+sum( %, n, 1, N -1);
+t_ab_zero : %pi**2 /N**2 *%;
+
+
+/* 解 */
+
+/* 場合分け 1 */
+case1 : (t_ab(A)-t_ab(B))/(dx**2 * N); 
+define(T1(N), case1);
+limit(T1(N), N, inf);
+case1_answer: %;
+
+               2                %pi x         2                %pi x
+(%o25) (((4 %pi  cos(%pi x) sin(-----) - 4 %pi  sin(%pi x) cos(-----))
+                                 2 N                            2 N
+    3 %pi x             2                %pi x         2                %pi x
+ sin (-----) + ((- 4 %pi  sin(%pi x) sin(-----) - 4 %pi  cos(%pi x) cos(-----))
+        N                                 2 N                            2 N
+     %pi x          2                %pi x          2                %pi x
+ cos(-----) + 12 %pi  sin(%pi x) sin(-----) + 12 %pi  cos(%pi x) cos(-----))
+       N                              2 N                             2 N
+    2 %pi x           2                %pi x         2                %pi x
+ sin (-----) + ((8 %pi  cos(%pi x) sin(-----) - 8 %pi  sin(%pi x) cos(-----))
+        N                               2 N                            2 N
+     %pi x         2                %pi x         2                %pi x
+ cos(-----) - 8 %pi  cos(%pi x) sin(-----) + 8 %pi  sin(%pi x) cos(-----))
+       N                             2 N                            2 N
+     %pi x           2                %pi x          2                %pi x
+ sin(-----) + (16 %pi  sin(%pi x) sin(-----) + 16 %pi  cos(%pi x) cos(-----))
+       N                               2 N                             2 N
+     %pi x          2                %pi x          2                %pi x    2
+ cos(-----) - 16 %pi  sin(%pi x) sin(-----) - 16 %pi  cos(%pi x) cos(-----)) N
+       N                              2 N                             2 N
+           2                %pi x     3 %pi x
+ + (- 8 %pi  cos(%pi x) sin(-----) sin (-----)
+                             2 N          N
+         2                %pi x      %pi x          2                %pi x
+ + (8 %pi  sin(%pi x) sin(-----) cos(-----) - 24 %pi  sin(%pi x) sin(-----)
+                           2 N         N                              2 N
+        2                %pi x      2 %pi x
+ - 8 %pi  cos(%pi x) cos(-----)) sin (-----)
+                          2 N           N
+          2                %pi x          2                %pi x      %pi x
+ + (16 %pi  cos(%pi x) sin(-----) - 16 %pi  cos(%pi x) sin(-----) cos(-----))
+                            2 N                             2 N         N
+     %pi x             2                %pi x          2                %pi x
+ sin(-----) + (- 32 %pi  sin(%pi x) sin(-----) - 16 %pi  cos(%pi x) cos(-----))
+       N                                 2 N                             2 N
+     %pi x          2                %pi x          2                %pi x
+ cos(-----) + 32 %pi  sin(%pi x) sin(-----) + 16 %pi  cos(%pi x) cos(-----)) N
+       N                              2 N                             2 N
+        2      2                 %pi x         2                %pi x
+ + ((%pi  - %pi  cos(%pi x)) sin(-----) - 3 %pi  sin(%pi x) cos(-----))
+                                  2 N                            2 N
+    3 %pi x         2                %pi x
+ sin (-----) + ((%pi  sin(%pi x) sin(-----)
+        N                             2 N
+       2        2                 %pi x       %pi x
+ + (%pi  - 3 %pi  cos(%pi x)) cos(-----)) cos(-----)
+                                   2 N          N
+        2                %pi x          2                 2      %pi x
+ + 5 %pi  sin(%pi x) sin(-----) + (5 %pi  cos(%pi x) + %pi ) cos(-----))
+                          2 N                                     2 N
+    2 %pi x            2                   2      %pi x
+ sin (-----) + (((2 %pi  cos(%pi x) - 2 %pi ) sin(-----)
+        N                                          2 N
+        2                %pi x       %pi x
+ - 2 %pi  sin(%pi x) cos(-----)) cos(-----)
+                          2 N          N
+         2        2                 %pi x         2                %pi x
+ + (2 %pi  - 2 %pi  cos(%pi x)) sin(-----) + 2 %pi  sin(%pi x) cos(-----))
+                                     2 N                            2 N
+     %pi x           2                %pi x
+ sin(-----) + (12 %pi  sin(%pi x) sin(-----)
+       N                               2 N
+         2                   2      %pi x       %pi x
+ + (4 %pi  cos(%pi x) + 4 %pi ) cos(-----)) cos(-----)
+                                     2 N          N
+         2                %pi x            2                   2      %pi x
+ - 12 %pi  sin(%pi x) sin(-----) + (- 4 %pi  cos(%pi x) - 4 %pi ) cos(-----))
+                           2 N                                         2 N
+        3 %pi x          2 %pi x           %pi x        2
+/((8 cos (-----) - 24 cos (-----) + 24 cos(-----) - 8) N )
+            N                N               N
+case2 : (t_ab_zero -t_ab(B))/(dx**2 * N); 
+define(T2(N), case2);
+limit(T2(N), N, inf);
+case2_answer: %;
+
+/* 出力 Fortran, Latex */
+fortran( ev( case1_answer, f1, f2));
+fortran( ev( case2_answer, f1, f2));
+tex( ev( case1_answer, f1, f2));
+tex( ev( case2_answer, f1, f2));
+
+
+
+                              2     7 %pi x
+                           %pi  cos(------- - %pi x)
+                                      2 N
+(%o26) ------------------------------------------------------------------
+             3 %pi x   2          2 %pi x   2           %pi x   2       2
+       8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+                N                    N                    N
+                           2     5 %pi x
+                      5 %pi  cos(------- - %pi x)
+                                   2 N
+ - ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                           2     3 %pi x
+                      9 %pi  cos(------- + %pi x)
+                                   2 N
+ - ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                             2     %pi x
+                       29 %pi  cos(----- + %pi x)
+                                    2 N
+ + ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                      2     7 %pi x
+                   %pi  cos(------- - %pi x)
+                              2 N
+ - ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     5 %pi x
+                  7 %pi  cos(------- - %pi x)
+                               2 N
+ + ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     3 %pi x
+                  3 %pi  cos(------- + %pi x)
+                               2 N
+ + ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                     2     3 %pi x
+                9 %pi  cos(------- - %pi x)
+                             2 N
+ - ------------------------------------------------------
+        3 %pi x          2 %pi x           %pi x
+   (cos(-------) - 6 cos(-------) + 15 cos(-----) - 10) N
+           N                N                N
+                        2     %pi x
+                  13 %pi  cos(----- + %pi x)
+                               2 N
+ - ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     %pi x
+                 11 %pi  cos(----- - %pi x)
+                              2 N
+ + ------------------------------------------------------
+        3 %pi x          2 %pi x           %pi x
+   (cos(-------) - 6 cos(-------) + 15 cos(-----) - 10) N
+           N                N                N
+                       2     3 %pi x
+                  9 %pi  cos(------- - %pi x)
+                               2 N
+ + ----------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x         2
+   (4 cos(-------) - 24 cos(-------) + 60 cos(-----) - 40) N
+             N                 N                N
+                         2     %pi x
+                   17 %pi  cos(----- - %pi x)
+                                2 N
+ - ----------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x         2
+   (4 cos(-------) - 24 cos(-------) + 60 cos(-----) - 40) N
+             N                 N                N
+                    2     7 %pi x
+                 %pi  cos(------- - %pi x)
+                            2 N
+ + -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                     2     5 %pi x
+                5 %pi  cos(------- - %pi x)
+                             2 N
+ - -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                    2     3 %pi x
+                 %pi  cos(------- + %pi x)
+                            2 N
+ - -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                   2     3 %pi x
+              5 %pi  cos(------- - %pi x)
+                           2 N
+ + --------------------------------------------------
+       3 %pi x          2 %pi x           %pi x
+   cos(-------) - 6 cos(-------) + 15 cos(-----) - 10
+          N                N                N
+                      2     %pi x
+                 5 %pi  cos(----- + %pi x)
+                             2 N
+ + -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                    2     %pi x
+               5 %pi  cos(----- - %pi x)
+                           2 N
+ - --------------------------------------------------
+       3 %pi x          2 %pi x           %pi x
+   cos(-------) - 6 cos(-------) + 15 cos(-----) - 10
+          N                N                N
+(%i27)                 2  2         2          2      2 %pi x N + 3 %pi x
+(%o27) - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                       2 N
+            2  2         2           2      2 %pi x N + %pi x
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi x N - %pi x
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi x N - 3 %pi x
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi x N - 5 %pi x
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi x N - 7 %pi x
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi x           2 %pi x            %pi x         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+(%i28)                            2  2         2          2      2 %pi x N + 3 %pi x
+(%o28) t_ab(x) := - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                                  2 N
+            2  2         2           2      2 %pi x N + %pi x
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi x N - %pi x
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi x N - 3 %pi x
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi x N - 5 %pi x
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi x N - 7 %pi x
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi x           2 %pi x            %pi x         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+(%i29)                                         2
+                                       n
+(%o29)                               - --
+                                       4
+(%i30)                                       3            2
+                         N + 2 (N - 1)  + 3 (N - 1)  - 1
+(%o30)                 - -------------------------------
+                                       24
+(%i31)                         2               3            2
+                     %pi  (N + 2 (N - 1)  + 3 (N - 1)  - 1)
+(%o31)             - --------------------------------------
+                                         2
+                                     24 N
+(%i32)                2  2         2          2      2 %pi B N + 3 %pi B
+(%o32) (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                      2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+          2  2         2          2      2 %pi A N + 3 %pi A
+ - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N + %pi A
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi A N - %pi A
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N - 3 %pi A
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi A N - 5 %pi A
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi A N - 7 %pi A
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi A           2 %pi A            %pi A         2      2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N ))/(dx  N)
+            N                 N                 N
+                        2  2         2          2      2 %pi B N + 3 %pi B
+(%o33) T1(N) := (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                               2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+          2  2         2          2      2 %pi A N + 3 %pi A
+ - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N + %pi A
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi A N - %pi A
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N - 3 %pi A
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi A N - 5 %pi A
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi A N - 7 %pi A
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi A           2 %pi A            %pi A         2      2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N ))/(dx  N)
+            N                 N                 N
+(%i34)            2   3  2               2             3       3
+(%o34) (%pi  (A  B  sin(%pi B) - A  sin(%pi A) B ) - 2 A  sin(%pi B)
+           3                                3                  3
+ + %pi (2 A  B cos(%pi B) - 2 A cos(%pi A) B ) + 2 sin(%pi A) B )
+        2  3  3
+/(%pi dx  A  B )
+(%i35)            2   3  2               2             3       3
+(%o35) (%pi  (A  B  sin(%pi B) - A  sin(%pi A) B ) - 2 A  sin(%pi B)
+           3                                3                  3
+ + %pi (2 A  B cos(%pi B) - 2 A cos(%pi A) B ) + 2 sin(%pi A) B )
+        2  3  3
+/(%pi dx  A  B )
+(%i36)                2  2         2          2      2 %pi B N + 3 %pi B
+(%o36) (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                      2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+      2               3            2
+   %pi  (N + 2 (N - 1)  + 3 (N - 1)  - 1)     2
+ - --------------------------------------)/(dx  N)
+                       2
+                   24 N
+                        2  2         2          2      2 %pi B N + 3 %pi B
+(%o37) T2(N) := (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                               2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+      2               3            2
+   %pi  (N + 2 (N - 1)  + 3 (N - 1)  - 1)     2
+ - --------------------------------------)/(dx  N)
+                       2
+                   24 N
+(%i38) (%o38) 
+                2  2                                                       3  3
+        - 12 %pi  B  sin(%pi B) + 24 sin(%pi B) - 24 %pi B cos(%pi B) + %pi  B
+      - -----------------------------------------------------------------------
+                                              2  3
+                                     12 %pi dx  B
+(%i39) (%o39) 
+                2  2                                                       3  3
+        - 12 %pi  B  sin(%pi B) + 24 sin(%pi B) - 24 %pi B cos(%pi B) + %pi  B
+      - -----------------------------------------------------------------------
+                                              2  3
+                                     12 %pi dx  B
+(%i40)       (%pi**2*((i-j)**3*(j+i)**2*sin(%pi*(j+i))-sin(%pi*(i-j))*(i-j)**2*
+     1   (j+i)**3)-2*(i-j)**3*sin(%pi*(j+i))+%pi*(2*(i-j)**3*(j+i)*cos(%
+     2   pi*(j+i))-2*cos(%pi*(i-j))*(i-j)*(j+i)**3)+2*sin(%pi*(i-j))*(j+
+     3   i)**3)/(%pi*dx**2*(i-j)**3*(j+i)**3)
+(%o40)                               done
+(%i41)       -(-12*%pi**2*(j+i)**2*sin(%pi*(j+i))+24*sin(%pi*(j+i))-24*%pi*(j+i
+     1   )*cos(%pi*(j+i))+%pi**3*(j+i)**3)/(%pi*dx**2*(j+i)**3)/1.2d+1
+(%o41)                               done
+(%i42) $${{\pi^2\,\left(\left(i-j\right)^3\,\left(j+i\right)^2\,\sin \left(
+ \pi\,\left(j+i\right)\right)-\sin \left(\pi\,\left(i-j\right)\right)
+ \,\left(i-j\right)^2\,\left(j+i\right)^3\right)-2\,\left(i-j\right)^
+ 3\,\sin \left(\pi\,\left(j+i\right)\right)+\pi\,\left(2\,\left(i-j
+ \right)^3\,\left(j+i\right)\,\cos \left(\pi\,\left(j+i\right)\right)
+ -2\,\cos \left(\pi\,\left(i-j\right)\right)\,\left(i-j\right)\,
+ \left(j+i\right)^3\right)+2\,\sin \left(\pi\,\left(i-j\right)\right)
+ \,\left(j+i\right)^3}\over{\pi\,{\it dx}^2\,\left(i-j\right)^3\,
+ \left(j+i\right)^3}}$$
+(%o42)                               false
+(%i43) $$-{{-12\,\pi^2\,\left(j+i\right)^2\,\sin \left(\pi\,\left(j+i\right)
+ \right)+24\,\sin \left(\pi\,\left(j+i\right)\right)-24\,\pi\,\left(j
+ +i\right)\,\cos \left(\pi\,\left(j+i\right)\right)+\pi^3\,\left(j+i
+ \right)^3}\over{12\,\pi\,{\it dx}^2\,\left(j+i\right)^3}}$$
+(%o43)                               false
+(%i44) 
+[1]+  Stopped                 rmaxima
+diamond:q1-2 boundary condition hyuna917$ clear
+
+diamond:q1-2 boundary condition hyuna917$ rmaxima
+Maxima 5.33.0 http://maxima.sourceforge.net
+using Lisp SBCL 1.2.2
+Distributed under the GNU Public License. See the file COPYING.
+Dedicated to the memory of William Schelter.
+The function bug_report() provides bug reporting information.
+/* 方程式 */
+
+/* 変数 宣言 */
+a : 0;
+(%o1)                                  0
+dx;
+(%o2)                                 dx
+assume( dx > 0 );
+(%o3)                              [dx > 0]
+N;
+(%o4)                                  N
+assume( N > 0 );
+(%o5)                               [N > 0]
+(%i6) 
+/* 座標、関数 宣言 */
+x(i) := a +dx*i;
+(%o6)                          x(i) := a + dx i
+b : dx*N +a;
+(%o7)                                dx N
+phi(n, x) := (2/(b-a))**(1/2) * sin((n -1/2)*%pi*(x-a)/(b-a)); /* (n -1/2) */
+                                                1
+                                           (n - -) %pi (x - a)
+                               2   1/2          2
+(%o8)          phi(n, x) := (-----)    sin(-------------------)
+                             b - a                b - a
+define( ddphi(n, x), diff( diff( phi(n, x), x), x));
+
+/* 変数 変換 */
+                                                               1
+                                                      %pi (n - -) x
+                                       2      1 2              2
+                            sqrt(2) %pi  (n - -)  sin(-------------)
+                                              2           dx N
+(%o9)      ddphi(n, x) := - ----------------------------------------
+                                             5/2  5/2
+/(dx**2 * N); 
+	define(T2(N), case2);
+	limit(T2(N), N, inf);
+	case2_answer: %;
+
+	/* 出力 Fortran, Latex */
+	fortran( ev( case1_answer, f1, f2));
+	fortran( ev( case2_answer, f1, f2));
+	tex( ev( case1_answer, f1, f2));
+	tex( ev( case2_answer, f1, f2));
+
+
+
+                                           dx    N
+(%i10) T_ij : dx* sum( phi(n, x(i)) * ddphi(n, x(j)), n, 1, N -1);
+                  N - 1                         1                  1
+                  ====               %pi i (n - -)      %pi j (n - -)
+                2 \          1 2                2                  2
+           2 %pi   >    (n - -)  sin(-------------) sin(-------------)
+                  /          2             N                  N
+                  ====
+                  n = 1
+(%o10)   - -----------------------------------------------------------
+                                       2  3
+                                     dx  N
+f1: A = (i -j);
+(%o11)                             A = i - j
+f2: B = (i +j);
+(%o12)                             B = j + i
+assume ( B >= 0);
+(%o13)                             [B >= 0]
+solve ( [f1, f2], [i, j]);
+                                B + A        A - B
+(%o14)                    [[i = -----, j = - -----]]
+                                  2            2
+T_ab : ev( T_ij, %);
+              N - 1                       1                        1
+              ====               %pi (n - -) (A - B)      %pi (n - -) (B + A)
+            2 \          1 2              2                        2
+       2 %pi   >    (n - -)  sin(-------------------) sin(-------------------)
+              /          2               2 N                      2 N
+              ====
+              n = 1
+(%o15) -----------------------------------------------------------------------
+                                         2  3
+                                       dx  N
+trigreduce(%, A);
+             N - 1
+             ====
+           2 \         2     %pi n B   %pi B            %pi n B   %pi B
+(%o16) (%pi   >    (4 n  cos(------- - -----) - 4 n cos(------- - -----)
+             /                  N       2 N                N       2 N
+             ====
+             n = 1
+       %pi n B   %pi B       2     %pi n A   %pi A            %pi n A   %pi A
+ + cos(------- - -----) - 4 n  cos(------- - -----) + 4 n cos(------- - -----)
+          N       2 N                 N       2 N                N       2 N
+       %pi n A   %pi A         2  3
+ - cos(------- - -----)))/(4 dx  N )
+          N       2 N
+(%i17) trigreduce(%, B);
+             N - 1
+             ====
+           2 \         2     %pi n B   %pi B            %pi n B   %pi B
+(%o17) (%pi   >    (4 n  cos(------- - -----) - 4 n cos(------- - -----)
+             /                  N       2 N                N       2 N
+             ====
+             n = 1
+       %pi n B   %pi B       2     %pi n A   %pi A            %pi n A   %pi A
+ + cos(------- - -----) - 4 n  cos(------- - -----) + 4 n cos(------- - -----)
+          N       2 N                 N       2 N                N       2 N
+       %pi n A   %pi A         2  3
+ - cos(------- - -----)))/(4 dx  N )
+          N       2 N
+trigsimp(%);
+T_ab : %;
+
+
+/* 三角関数を指数関数に直して解く */
+simpsum: ture;
+
+             N - 1
+             ====
+           2 \          2                (2 %pi n - %pi) B
+(%o18) (%pi   >    ((4 n  - 4 n + 1) cos(-----------------)
+             /                                  2 N
+             ====
+             n = 1
+                              2                (2 %pi n - %pi) A         2  3
+                      + (- 4 n  + 4 n - 1) cos(-----------------)))/(4 dx  N )
+                                                      2 N
+(%i19)              N - 1
+             ====
+           2 \          2                (2 %pi n - %pi) B
+(%o19) (%pi   >    ((4 n  - 4 n + 1) cos(-----------------)
+             /                                  2 N
+             ====
+             n = 1
+                              2                (2 %pi n - %pi) A         2  3
+                      + (- 4 n  + 4 n - 1) cos(-----------------)))/(4 dx  N )
+                                                      2 N
+(%i20) (%o20)                               ture
+/* t_ab : 0 でないとき */
+exp( %i * %pi/N * (n -1/2) * x); /* (n -1/2) */
+                               %i %pi (n - 1/2) x
+                               ------------------
+                                       N
+(%o21)                       %e
+sum( %, n, 1, N -1);
+                        %i %pi x                 %i %pi x
+                      - --------                 --------
+                          2 N       %i %pi x        N
+                    %e           (%e         - %e        )
+(%o22)              --------------------------------------
+                                  %i %pi x
+                                  --------
+                                     N
+                                %e         - 1
+(%i23) diff( diff( %, x), x); 
+                                                                      %i %pi x
+                    %i %pi x   %i %pi x                               --------
+                  - --------   --------                                  N
+                      2 N         N               %i %pi x   %i %pi %e
+         %i %pi %e           %e         (%i %pi %e         - -----------------)
+                                                                     N
+(%o23) - ----------------------------------------------------------------------
+                                       %i %pi x
+                                       --------
+                                          N         2
+                                  N (%e         - 1)
+                                                     %i %pi x
+              %i %pi x                               --------
+            - --------                                  N
+                2 N              %i %pi x   %i %pi %e
+   %i %pi %e           (%i %pi %e         - -----------------)
+                                                    N
+ - -----------------------------------------------------------
+                            %i %pi x
+                            --------
+                               N
+                       N (%e         - 1)
+                                                   %i %pi x
+            %i %pi x                               --------
+            --------                                  N
+              2 N              %i %pi x   %i %pi %e
+   %i %pi %e         (%i %pi %e         - -----------------)
+                                                  N
+ - ---------------------------------------------------------
+                           %i %pi x
+                           --------
+                              N         2
+                      N (%e         - 1)
+                        %i %pi x
+       %i %pi x         --------
+     - --------     2      N
+         2 N     %pi  %e              2   %i %pi x
+   %e           (--------------- - %pi  %e        )
+                        2
+                       N
+ + ------------------------------------------------
+                      %i %pi x
+                      --------
+                         N
+                    %e         - 1
+            %i %pi x                 %i %pi x    %i %pi x
+          - --------                 --------    --------
+      2       2 N       %i %pi x        N           N
+   %pi  %e           (%e         - %e        ) %e
+ - ------------------------------------------------------
+                           %i %pi x
+                           --------
+                      2       N         2
+                   2 N  (%e         - 1)
+            %i %pi x                 %i %pi x    %i %pi x
+            --------                 --------    --------
+        2     2 N       %i %pi x        N           N
+   2 %pi  %e         (%e         - %e        ) %e
+ - ------------------------------------------------------
+                          %i %pi x
+                          --------
+                     2       N         3
+                    N  (%e         - 1)
+            %i %pi x                 %i %pi x
+          - --------                 --------
+      2       2 N       %i %pi x        N
+   %pi  %e           (%e         - %e        )
+ - -------------------------------------------
+                      %i %pi x
+                      --------
+                 2       N
+              4 N  (%e         - 1)
+          %i %pi x                 %i %pi x
+          --------                 --------
+      2     2 N       %i %pi x        N
+   %pi  %e         (%e         - %e        )
+ + -----------------------------------------
+                    %i %pi x
+                    --------
+               2       N         2
+            2 N  (%e         - 1)
+                   %pi x          %pi x           %pi x
+(%o24) - (%pi (sin(-----) (2 (cos(-----) - 1) sin(-----)
+                    2 N             N               N
+                      %pi x
+              %pi sin(-----)
+      %pi x             N
+ (sin(-----) (-------------- - %pi sin(%pi x))
+        N           N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ + cos(-----) (%pi cos(%pi x) - --------------))
+         N                            N
+         %pi x      2      2 %pi x        %pi x
+ + ((cos(-----) - 1)  - sin (-----)) (cos(-----)
+           N                   N            N
+          %pi x
+  %pi sin(-----)
+            N                            %pi x
+ (-------------- - %pi sin(%pi x)) - sin(-----)
+        N                                  N
+                           %pi x
+                   %pi cos(-----)
+                             N             %pi x
+ (%pi cos(%pi x) - --------------))) - cos(-----)
+                         N                  2 N
+        %pi x      2      2 %pi x        %pi x
+ (((cos(-----) - 1)  - sin (-----)) (sin(-----)
+          N                   N            N
+          %pi x
+  %pi sin(-----)
+            N                            %pi x
+ (-------------- - %pi sin(%pi x)) + cos(-----)
+        N                                  N
+                           %pi x
+                   %pi cos(-----)
+                             N               %pi x           %pi x
+ (%pi cos(%pi x) - --------------)) - 2 (cos(-----) - 1) sin(-----)
+                         N                     N               N
+                      %pi x
+              %pi sin(-----)
+      %pi x             N
+ (cos(-----) (-------------- - %pi sin(%pi x))
+        N           N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ - sin(-----) (%pi cos(%pi x) - --------------)))))
+         N                            N
+      2 %pi x         %pi x      2 2
+/((sin (-----) + (cos(-----) - 1) )  N)
+          N             N
+               %pi x         %pi x      2      2 %pi x
+ - (%pi (- sin(-----) (((cos(-----) - 1)  - sin (-----))
+                2 N            N                   N
+          %pi x
+  %pi sin(-----)
+            N                               %pi x           %pi x
+ (-------------- - %pi sin(%pi x)) + 2 (cos(-----) - 1) sin(-----)
+        N                                     N               N
+                           %pi x
+                   %pi cos(-----)
+                             N            %pi x
+ (%pi cos(%pi x) - --------------)) - cos(-----)
+                         N                 2 N
+                                                              %pi x
+                                                      %pi cos(-----)
+        %pi x      2      2 %pi x                               N
+ (((cos(-----) - 1)  - sin (-----)) (%pi cos(%pi x) - --------------)
+          N                   N                             N
+                                          %pi x
+                                  %pi sin(-----)
+          %pi x           %pi x             N
+ - 2 (cos(-----) - 1) sin(-----) (-------------- - %pi sin(%pi x)))))
+            N               N           N
+      2 %pi x         %pi x      2 2
+/((sin (-----) + (cos(-----) - 1) )  N)
+          N             N
+                                               %pi x
+                                       %pi sin(-----)
+             %pi x        %pi x                  N
+ - (%pi (sin(-----) ((cos(-----) - 1) (-------------- - %pi sin(%pi x))
+              2 N           N                N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ + sin(-----) (%pi cos(%pi x) - --------------))
+         N                            N
+                                                          %pi x
+                                                  %pi cos(-----)
+       %pi x        %pi x                                   N
+ - cos(-----) ((cos(-----) - 1) (%pi cos(%pi x) - --------------)
+        2 N           N                                 N
+                       %pi x
+               %pi sin(-----)
+       %pi x             N
+ - sin(-----) (-------------- - %pi sin(%pi x)))))
+         N           N
+      2 %pi x         %pi x      2            %pi x
+/((sin (-----) + (cos(-----) - 1) ) N) + (cos(-----)
+          N             N                      2 N
+                 2     %pi x
+              %pi  sin(-----)
+      %pi x              N         2
+ (sin(-----) (--------------- - %pi  sin(%pi x))
+        N            2
+                    N
+                        2     %pi x
+                     %pi  cos(-----)
+        %pi x                   N         2
+ + (cos(-----) - 1) (--------------- - %pi  cos(%pi x)))
+          N                 2
+                           N
+                                    2     %pi x
+                                 %pi  sin(-----)
+       %pi x        %pi x                   N         2
+ + sin(-----) ((cos(-----) - 1) (--------------- - %pi  sin(%pi x))
+        2 N           N                 2
+                                       N
+                  2     %pi x
+               %pi  cos(-----)
+       %pi x              N         2
+ - sin(-----) (--------------- - %pi  cos(%pi x))))
+         N            2
+                     N
+     2 %pi x         %pi x      2        2
+/(sin (-----) + (cos(-----) - 1) ) - (%pi
+         N             N
+      %pi x                     %pi x       %pi x
+ (cos(-----) ((sin(%pi x) - sin(-----)) sin(-----)
+       2 N                        N           N
+                     %pi x        %pi x
+ + (cos(%pi x) - cos(-----)) (cos(-----) - 1))
+                       N            N
+       %pi x        %pi x                         %pi x
+ + sin(-----) ((cos(-----) - 1) (sin(%pi x) - sin(-----))
+        2 N           N                             N
+                     %pi x       %pi x
+ - (cos(%pi x) - cos(-----)) sin(-----))))
+                       N           N
+        2 %pi x         %pi x      2   2
+/(4 (sin (-----) + (cos(-----) - 1) ) N )
+            N             N
+       2      %pi x                     %pi x
+ + (%pi  (cos(-----) ((cos(%pi x) - cos(-----))
+               2 N                        N
+       %pi x      2      2 %pi x            %pi x
+ ((cos(-----) - 1)  - sin (-----)) + 2 (cos(-----) - 1)
+         N                   N                N
+                   %pi x       %pi x         %pi x
+ (sin(%pi x) - sin(-----)) sin(-----)) - sin(-----)
+                     N           N            2 N
+                    %pi x         %pi x      2      2 %pi x
+ ((sin(%pi x) - sin(-----)) ((cos(-----) - 1)  - sin (-----))
+                      N             N                   N
+                       %pi x        %pi x           %pi x
+ - 2 (cos(%pi x) - cos(-----)) (cos(-----) - 1) sin(-----))))
+                         N            N               N
+        2 %pi x         %pi x      2 2  2
+/(2 (sin (-----) + (cos(-----) - 1) )  N )
+            N             N
+         2      %pi x                     %pi x
+ - (2 %pi  (cos(-----) ((cos(%pi x) - cos(-----))
+                 2 N                        N
+      %pi x          %pi x      2     %pi x       3 %pi x
+  sin(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+        N              N                N             N
+ (---------------------------------------------------------
+                 2 %pi x         %pi x      2 3
+             (sin (-----) + (cos(-----) - 1) )
+                     N             N
+       %pi x        %pi x      3          %pi x          2 %pi x
+   cos(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+         N            N                     N                N
+ + ---------------------------------------------------------------)
+                     2 %pi x         %pi x      2 3
+                 (sin (-----) + (cos(-----) - 1) )
+                         N             N
+                     %pi x
+ - (sin(%pi x) - sin(-----))
+                       N
+      %pi x        %pi x      3          %pi x          2 %pi x
+  sin(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+        N            N                     N                N
+ (---------------------------------------------------------------
+                    2 %pi x         %pi x      2 3
+                (sin (-----) + (cos(-----) - 1) )
+                        N             N
+       %pi x          %pi x      2     %pi x       3 %pi x
+   cos(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+         N              N                N             N
+ - ---------------------------------------------------------))
+                  2 %pi x         %pi x      2 3
+              (sin (-----) + (cos(-----) - 1) )
+                      N             N
+       %pi x                     %pi x
+ - sin(-----) ((sin(%pi x) - sin(-----))
+        2 N                        N
+      %pi x          %pi x      2     %pi x       3 %pi x
+  sin(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+        N              N                N             N
+ (---------------------------------------------------------
+                 2 %pi x         %pi x      2 3
+             (sin (-----) + (cos(-----) - 1) )
+                     N             N
+       %pi x        %pi x      3          %pi x          2 %pi x
+   cos(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+         N            N                     N                N
+ + ---------------------------------------------------------------)
+                     2 %pi x         %pi x      2 3
+                 (sin (-----) + (cos(-----) - 1) )
+                         N             N
+                     %pi x
+ + (cos(%pi x) - cos(-----))
+                       N
+      %pi x        %pi x      3          %pi x          2 %pi x
+  sin(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+        N            N                     N                N
+ (---------------------------------------------------------------
+                    2 %pi x         %pi x      2 3
+                (sin (-----) + (cos(-----) - 1) )
+                        N             N
+       %pi x          %pi x      2     %pi x       3 %pi x
+   cos(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+         N              N                N             N          2
+ - ---------------------------------------------------------))))/N
+                  2 %pi x         %pi x      2 3
+              (sin (-----) + (cos(-----) - 1) )
+                      N             N
+       2      %pi x                     %pi x
+ - (%pi  (sin(-----) ((sin(%pi x) - sin(-----))
+               2 N                        N
+         %pi x          2 %pi x        %pi x
+ (2 (cos(-----) - 1) sin (-----) + cos(-----)
+           N                N            N
+       %pi x      2      2 %pi x                        %pi x
+ ((cos(-----) - 1)  - sin (-----))) + (cos(%pi x) - cos(-----))
+         N                   N                            N
+      %pi x        %pi x      2      2 %pi x
+ (sin(-----) ((cos(-----) - 1)  - sin (-----))
+        N            N                   N
+          %pi x           %pi x      %pi x
+ - 2 (cos(-----) - 1) cos(-----) sin(-----)))
+            N               N          N
+       %pi x                     %pi x
+ + cos(-----) ((cos(%pi x) - cos(-----))
+        2 N                        N
+         %pi x          2 %pi x        %pi x
+ (2 (cos(-----) - 1) sin (-----) + cos(-----)
+           N                N            N
+       %pi x      2      2 %pi x                        %pi x
+ ((cos(-----) - 1)  - sin (-----))) - (sin(%pi x) - sin(-----))
+         N                   N                            N
+      %pi x        %pi x      2      2 %pi x
+ (sin(-----) ((cos(-----) - 1)  - sin (-----))
+        N            N                   N
+          %pi x           %pi x      %pi x
+ - 2 (cos(-----) - 1) cos(-----) sin(-----)))))
+            N               N          N
+        2 %pi x         %pi x      2 2  2
+/(2 (sin (-----) + (cos(-----) - 1) )  N )
+            N             N
+trigsimp(%);
+trigreduce(%);
+trigsimp(%);
+define( t_ab(x), %);
+
+/* t_ab : 0 のとき */
+-(n -1/2)**2; /* (n -1/2) */
+sum( %, n, 1, N -1);
+t_ab_zero : %pi**2 /N**2 *%;
+
+
+/* 解 */
+
+/* 場合分け 1 */
+case1 : (t_ab(A)-t_ab(B))/(dx**2 * N); 
+define(T1(N), case1);
+limit(T1(N), N, inf);
+case1_answer: %;
+
+/* 場合分け 2 */
+case2 : (t_ab_zero -t_ab(B))/(dx**2 * N); 
+               2                %pi x         2                %pi x
+(%o25) (((4 %pi  cos(%pi x) sin(-----) - 4 %pi  sin(%pi x) cos(-----))
+                                 2 N                            2 N
+    3 %pi x             2                %pi x         2                %pi x
+ sin (-----) + ((- 4 %pi  sin(%pi x) sin(-----) - 4 %pi  cos(%pi x) cos(-----))
+        N                                 2 N                            2 N
+     %pi x          2                %pi x          2                %pi x
+ cos(-----) + 12 %pi  sin(%pi x) sin(-----) + 12 %pi  cos(%pi x) cos(-----))
+       N                              2 N                             2 N
+    2 %pi x           2                %pi x         2                %pi x
+ sin (-----) + ((8 %pi  cos(%pi x) sin(-----) - 8 %pi  sin(%pi x) cos(-----))
+        N                               2 N                            2 N
+     %pi x         2                %pi x         2                %pi x
+ cos(-----) - 8 %pi  cos(%pi x) sin(-----) + 8 %pi  sin(%pi x) cos(-----))
+       N                             2 N                            2 N
+     %pi x           2                %pi x          2                %pi x
+ sin(-----) + (16 %pi  sin(%pi x) sin(-----) + 16 %pi  cos(%pi x) cos(-----))
+       N                               2 N                             2 N
+     %pi x          2                %pi x          2                %pi x    2
+ cos(-----) - 16 %pi  sin(%pi x) sin(-----) - 16 %pi  cos(%pi x) cos(-----)) N
+       N                              2 N                             2 N
+           2                %pi x     3 %pi x
+ + (- 8 %pi  cos(%pi x) sin(-----) sin (-----)
+                             2 N          N
+         2                %pi x      %pi x          2                %pi x
+ + (8 %pi  sin(%pi x) sin(-----) cos(-----) - 24 %pi  sin(%pi x) sin(-----)
+                           2 N         N                              2 N
+        2                %pi x      2 %pi x
+ - 8 %pi  cos(%pi x) cos(-----)) sin (-----)
+                          2 N           N
+          2                %pi x          2                %pi x      %pi x
+ + (16 %pi  cos(%pi x) sin(-----) - 16 %pi  cos(%pi x) sin(-----) cos(-----))
+                            2 N                             2 N         N
+     %pi x             2                %pi x          2                %pi x
+ sin(-----) + (- 32 %pi  sin(%pi x) sin(-----) - 16 %pi  cos(%pi x) cos(-----))
+       N                                 2 N                             2 N
+     %pi x          2                %pi x          2                %pi x
+ cos(-----) + 32 %pi  sin(%pi x) sin(-----) + 16 %pi  cos(%pi x) cos(-----)) N
+       N                              2 N                             2 N
+        2      2                 %pi x         2                %pi x
+ + ((%pi  - %pi  cos(%pi x)) sin(-----) - 3 %pi  sin(%pi x) cos(-----))
+                                  2 N                            2 N
+    3 %pi x         2                %pi x
+ sin (-----) + ((%pi  sin(%pi x) sin(-----)
+        N                             2 N
+       2        2                 %pi x       %pi x
+ + (%pi  - 3 %pi  cos(%pi x)) cos(-----)) cos(-----)
+                                   2 N          N
+        2                %pi x          2                 2      %pi x
+ + 5 %pi  sin(%pi x) sin(-----) + (5 %pi  cos(%pi x) + %pi ) cos(-----))
+                          2 N                                     2 N
+    2 %pi x            2                   2      %pi x
+ sin (-----) + (((2 %pi  cos(%pi x) - 2 %pi ) sin(-----)
+        N                                          2 N
+        2                %pi x       %pi x
+ - 2 %pi  sin(%pi x) cos(-----)) cos(-----)
+                          2 N          N
+         2        2                 %pi x         2                %pi x
+ + (2 %pi  - 2 %pi  cos(%pi x)) sin(-----) + 2 %pi  sin(%pi x) cos(-----))
+                                     2 N                            2 N
+     %pi x           2                %pi x
+ sin(-----) + (12 %pi  sin(%pi x) sin(-----)
+       N                               2 N
+         2                   2      %pi x       %pi x
+ + (4 %pi  cos(%pi x) + 4 %pi ) cos(-----)) cos(-----)
+                                     2 N          N
+         2                %pi x            2                   2      %pi x
+ - 12 %pi  sin(%pi x) sin(-----) + (- 4 %pi  cos(%pi x) - 4 %pi ) cos(-----))
+                           2 N                                         2 N
+        3 %pi x          2 %pi x           %pi x        2
+/((8 cos (-----) - 24 cos (-----) + 24 cos(-----) - 8) N )
+            N                N               N
+define(T2(N), case2);
+limit(T2(N), N, inf);
+case2_answer: %;
+
+/* 出力 Fortran, Latex */
+fortran( ev( case1_answer, f1, f2));
+fortran( ev( case2_answer, f1, f2));
+tex( ev( case1_answer, f1, f2));
+tex( ev( case2_answer, f1, f2));
+
+
+
+                              2     7 %pi x
+                           %pi  cos(------- - %pi x)
+                                      2 N
+(%o26) ------------------------------------------------------------------
+             3 %pi x   2          2 %pi x   2           %pi x   2       2
+       8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+                N                    N                    N
+                           2     5 %pi x
+                      5 %pi  cos(------- - %pi x)
+                                   2 N
+ - ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                           2     3 %pi x
+                      9 %pi  cos(------- + %pi x)
+                                   2 N
+ - ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                             2     %pi x
+                       29 %pi  cos(----- + %pi x)
+                                    2 N
+ + ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                      2     7 %pi x
+                   %pi  cos(------- - %pi x)
+                              2 N
+ - ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     5 %pi x
+                  7 %pi  cos(------- - %pi x)
+                               2 N
+ + ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     3 %pi x
+                  3 %pi  cos(------- + %pi x)
+                               2 N
+ + ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                     2     3 %pi x
+                9 %pi  cos(------- - %pi x)
+                             2 N
+ - ------------------------------------------------------
+        3 %pi x          2 %pi x           %pi x
+   (cos(-------) - 6 cos(-------) + 15 cos(-----) - 10) N
+           N                N                N
+                        2     %pi x
+                  13 %pi  cos(----- + %pi x)
+                               2 N
+ - ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     %pi x
+                 11 %pi  cos(----- - %pi x)
+                              2 N
+ + ------------------------------------------------------
+        3 %pi x          2 %pi x           %pi x
+   (cos(-------) - 6 cos(-------) + 15 cos(-----) - 10) N
+           N                N                N
+                       2     3 %pi x
+                  9 %pi  cos(------- - %pi x)
+                               2 N
+ + ----------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x         2
+   (4 cos(-------) - 24 cos(-------) + 60 cos(-----) - 40) N
+             N                 N                N
+                         2     %pi x
+                   17 %pi  cos(----- - %pi x)
+                                2 N
+ - ----------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x         2
+   (4 cos(-------) - 24 cos(-------) + 60 cos(-----) - 40) N
+             N                 N                N
+                    2     7 %pi x
+                 %pi  cos(------- - %pi x)
+                            2 N
+ + -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                     2     5 %pi x
+                5 %pi  cos(------- - %pi x)
+                             2 N
+ - -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                    2     3 %pi x
+                 %pi  cos(------- + %pi x)
+                            2 N
+ - -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                   2     3 %pi x
+              5 %pi  cos(------- - %pi x)
+                           2 N
+ + --------------------------------------------------
+       3 %pi x          2 %pi x           %pi x
+   cos(-------) - 6 cos(-------) + 15 cos(-----) - 10
+          N                N                N
+                      2     %pi x
+                 5 %pi  cos(----- + %pi x)
+                             2 N
+ + -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                    2     %pi x
+               5 %pi  cos(----- - %pi x)
+                           2 N
+ - --------------------------------------------------
+       3 %pi x          2 %pi x           %pi x
+   cos(-------) - 6 cos(-------) + 15 cos(-----) - 10
+          N                N                N
+(%i27)                 2  2         2          2      2 %pi x N + 3 %pi x
+(%o27) - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                       2 N
+            2  2         2           2      2 %pi x N + %pi x
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi x N - %pi x
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi x N - 3 %pi x
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi x N - 5 %pi x
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi x N - 7 %pi x
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi x           2 %pi x            %pi x         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+(%i28)                            2  2         2          2      2 %pi x N + 3 %pi x
+(%o28) t_ab(x) := - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                                  2 N
+            2  2         2           2      2 %pi x N + %pi x
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi x N - %pi x
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi x N - 3 %pi x
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi x N - 5 %pi x
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi x N - 7 %pi x
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi x           2 %pi x            %pi x         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+(%i29)                                          1 2
+(%o29)                            - (n - -)
+                                         2
+                        3            2                  2
+           N + 2 (N - 1)  + 3 (N - 1)  - 1   N + (N - 1)  - 1   N - 1
+(%o30)   - ------------------------------- + ---------------- - -----
+                          6                         2             4
+(%i31)                             3            2                  2
+          2    N + 2 (N - 1)  + 3 (N - 1)  - 1   N + (N - 1)  - 1   N - 1
+       %pi  (- ------------------------------- + ---------------- - -----)
+                              6                         2             4
+(%o31) -------------------------------------------------------------------
+                                        2
+                                       N
+(%i32)                2  2         2          2      2 %pi B N + 3 %pi B
+(%o32) (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                      2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+          2  2         2          2      2 %pi A N + 3 %pi A
+ - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N + %pi A
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi A N - %pi A
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N - 3 %pi A
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi A N - 5 %pi A
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi A N - 7 %pi A
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi A           2 %pi A            %pi A         2      2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N ))/(dx  N)
+            N                 N                 N
+                        2  2         2          2      2 %pi B N + 3 %pi B
+(%o33) T1(N) := (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                               2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+          2  2         2          2      2 %pi A N + 3 %pi A
+ - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N + %pi A
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi A N - %pi A
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N - 3 %pi A
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi A N - 5 %pi A
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi A N - 7 %pi A
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi A           2 %pi A            %pi A         2      2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N ))/(dx  N)
+            N                 N                 N
+(%i34)            2   3  2               2             3       3
+(%o34) (%pi  (A  B  sin(%pi B) - A  sin(%pi A) B ) - 2 A  sin(%pi B)
+           3                                3                  3
+ + %pi (2 A  B cos(%pi B) - 2 A cos(%pi A) B ) + 2 sin(%pi A) B )
+        2  3  3
+/(%pi dx  A  B )
+(%i35)            2   3  2               2             3       3
+(%o35) (%pi  (A  B  sin(%pi B) - A  sin(%pi A) B ) - 2 A  sin(%pi B)
+           3                                3                  3
+ + %pi (2 A  B cos(%pi B) - 2 A cos(%pi A) B ) + 2 sin(%pi A) B )
+        2  3  3
+/(%pi dx  A  B )
+(%i36)                2  2         2          2      2 %pi B N + 3 %pi B
+(%o36) (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                      2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+                        3            2                  2
+      2    N + 2 (N - 1)  + 3 (N - 1)  - 1   N + (N - 1)  - 1   N - 1
+   %pi  (- ------------------------------- + ---------------- - -----)
+                          6                         2             4        2
+ + -------------------------------------------------------------------)/(dx  N)
+                                    2
+                                   N
+                        2  2         2          2      2 %pi B N + 3 %pi B
+(%o37) T2(N) := (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                               2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+                        3            2                  2
+      2    N + 2 (N - 1)  + 3 (N - 1)  - 1   N + (N - 1)  - 1   N - 1
+   %pi  (- ------------------------------- + ---------------- - -----)
+                          6                         2             4        2
+ + -------------------------------------------------------------------)/(dx  N)
+                                    2
+                                   N
+(%i38)                 2  2                                                     3  3
+         - 3 %pi  B  sin(%pi B) + 6 sin(%pi B) - 6 %pi B cos(%pi B) + %pi  B
+(%o38) - --------------------------------------------------------------------
+                                             2  3
+                                     3 %pi dx  B
+(%i39)                 2  2                                                     3  3
+         - 3 %pi  B  sin(%pi B) + 6 sin(%pi B) - 6 %pi B cos(%pi B) + %pi  B
+(%o39) - --------------------------------------------------------------------
+                                             2  3
+                                     3 %pi dx  B
+(%i40)       (%pi**2*((i-j)**3*(j+i)**2*sin(%pi*(j+i))-sin(%pi*(i-j))*(i-j)**2*
+     1   (j+i)**3)-2*(i-j)**3*sin(%pi*(j+i))+%pi*(2*(i-j)**3*(j+i)*cos(%
+     2   pi*(j+i))-2*cos(%pi*(i-j))*(i-j)*(j+i)**3)+2*sin(%pi*(i-j))*(j+
+     3   i)**3)/(%pi*dx**2*(i-j)**3*(j+i)**3)
+(%o40)                               done
+(%i41)       -(-3*%pi**2*(j+i)**2*sin(%pi*(j+i))+6*sin(%pi*(j+i))-6*%pi*(j+i)*c
+     1   os(%pi*(j+i))+%pi**3*(j+i)**3)/(%pi*dx**2*(j+i)**3)/3.d+0
+(%o41)                               done
+(%i42) $${{\pi^2\,\left(\left(i-j\right)^3\,\left(j+i\right)^2\,\sin \left(
+ \pi\,\left(j+i\right)\right)-\sin \left(\pi\,\left(i-j\right)\right)
+ \,\left(i-j\right)^2\,\left(j+i\right)^3\right)-2\,\left(i-j\right)^
+ 3\,\sin \left(\pi\,\left(j+i\right)\right)+\pi\,\left(2\,\left(i-j
+ \right)^3\,\left(j+i\right)\,\cos \left(\pi\,\left(j+i\right)\right)
+ -2\,\cos \left(\pi\,\left(i-j\right)\right)\,\left(i-j\right)\,
+ \left(j+i\right)^3\right)+2\,\sin \left(\pi\,\left(i-j\right)\right)
+ \,\left(j+i\right)^3}\over{\pi\,{\it dx}^2\,\left(i-j\right)^3\,
+ \left(j+i\right)^3}}$$
+(%o42)                               false
+(%i43) $$-{{-3\,\pi^2\,\left(j+i\right)^2\,\sin \left(\pi\,\left(j+i\right)
+ \right)+6\,\sin \left(\pi\,\left(j+i\right)\right)-6\,\pi\,\left(j+i
+ \right)\,\cos \left(\pi\,\left(j+i\right)\right)+\pi^3\,\left(j+i
+ \right)^3}\over{3\,\pi\,{\it dx}^2\,\left(j+i\right)^3}}$$
+(%o43)                               false
+(%i44) 
+[2]+  Stopped                 rmaxima
+diamond:q1-2 boundary condition hyuna917$ clear
+
+diamond:q1-2 boundary condition hyuna917$ rmaxima
+Maxima 5.33.0 http://maxima.sourceforge.net
+using Lisp SBCL 1.2.2
+Distributed under the GNU Public License. See the file COPYING.
+Dedicated to the memory of William Schelter.
+The function bug_report() provides bug reporting information.
+/* 方程式 */
+
+/* 変数 宣言 */
+a : 0;
+(%o1)                                  0
+dx;
+(%o2)                                 dx
+assume( dx > 0 );
+(%o3)                              [dx > 0]
+N;
+(%o4)                                  N
+assume( N > 0 );
+(%o5)                               [N > 0]
+(%i6) 
+/* 座標、関数 宣言 */
+x(i) := a +dx*i;
+(%o6)                          x(i) := a + dx i
+b : dx*N +a;
+(%o7)                                dx N
+phi(n, x) := (2/(b-a))**(1/2) * sin((n -1/2)*%pi*(x-a)/(b-a)); /* (n -1/2) */
+                                                1
+                                           (n - -) %pi (x - a)
+                               2   1/2          2
+(%o8)          phi(n, x) := (-----)    sin(-------------------)
+                             b - a                b - a
+define( ddphi(n, x), diff( diff( phi(n, x), x), x));
+
+/* 変数 変換 */
+                                                               1
+                                                      %pi (n - -) x
+                                       2      1 2              2
+                            sqrt(2) %pi  (n - -)  sin(-------------)
+                                              2           dx N
+(%o9)      ddphi(n, x) := - ----------------------------------------
+                                             5/2  5/2
+                                           dx    N
+(%i10) T_ij : dx* sum( phi(n, x(i)) * ddphi(n, x(j)), n, 1, N -1);
+                  N - 1                         1                  1
+                  ====               %pi i (n - -)      %pi j (n - -)
+                2 \          1 2                2                  2
+           2 %pi   >    (n - -)  sin(-------------) sin(-------------)
+                  /          2             N                  N
+                  ====
+                  n = 1
+(%o10)   - -----------------------------------------------------------
+                                       2  3
+                                     dx  N
+f1: A = (i -j);
+(%o11)                             A = i - j
+f2: B = (i +j);
+(%o12)                             B = j + i
+assume ( B >= 0);
+(%o13)                             [B >= 0]
+solve ( [f1, f2], [i, j]);
+                                B + A        A - B
+(%o14)                    [[i = -----, j = - -----]]
+                                  2            2
+T_ab : ev( T_ij, %);
+              N - 1                       1                        1
+              ====               %pi (n - -) (A - B)      %pi (n - -) (B + A)
+            2 \          1 2              2                        2
+       2 %pi   >    (n - -)  sin(-------------------) sin(-------------------)
+              /          2               2 N                      2 N
+              ====
+              n = 1
+(%o15) -----------------------------------------------------------------------
+                                         2  3
+                                       dx  N
+trigreduce(%, A);
+             N - 1
+             ====
+           2 \         2     %pi n B   %pi B            %pi n B   %pi B
+(%o16) (%pi   >    (4 n  cos(------- - -----) - 4 n cos(------- - -----)
+             /                  N       2 N                N       2 N
+             ====
+             n = 1
+       %pi n B   %pi B       2     %pi n A   %pi A            %pi n A   %pi A
+ + cos(------- - -----) - 4 n  cos(------- - -----) + 4 n cos(------- - -----)
+          N       2 N                 N       2 N                N       2 N
+       %pi n A   %pi A         2  3
+ - cos(------- - -----)))/(4 dx  N )
+          N       2 N
+(%i17) trigreduce(%, B);
+             N - 1
+             ====
+           2 \         2     %pi n B   %pi B            %pi n B   %pi B
+(%o17) (%pi   >    (4 n  cos(------- - -----) - 4 n cos(------- - -----)
+             /                  N       2 N                N       2 N
+             ====
+             n = 1
+       %pi n B   %pi B       2     %pi n A   %pi A            %pi n A   %pi A
+ + cos(------- - -----) - 4 n  cos(------- - -----) + 4 n cos(------- - -----)
+          N       2 N                 N       2 N                N       2 N
+       %pi n A   %pi A         2  3
+ - cos(------- - -----)))/(4 dx  N )
+          N       2 N
+trigsimp(%);
+T_ab : %;
+
+
+/* 三角関数を指数関数に直して解く */
+simpsum: ture;
+
+             N - 1
+             ====
+           2 \          2                (2 %pi n - %pi) B
+(%o18) (%pi   >    ((4 n  - 4 n + 1) cos(-----------------)
+             /                                  2 N
+             ====
+             n = 1
+                              2                (2 %pi n - %pi) A         2  3
+                      + (- 4 n  + 4 n - 1) cos(-----------------)))/(4 dx  N )
+                                                      2 N
+(%i19)              N - 1
+             ====
+           2 \          2                (2 %pi n - %pi) B
+(%o19) (%pi   >    ((4 n  - 4 n + 1) cos(-----------------)
+             /                                  2 N
+             ====
+             n = 1
+                              2                (2 %pi n - %pi) A         2  3
+                      + (- 4 n  + 4 n - 1) cos(-----------------)))/(4 dx  N )
+                                                      2 N
+(%i20) (%o20)                               ture
+/* t_ab : 0 でないとき */
+exp( %i * %pi/N * (n -1/2) * x); /* (n -1/2) */
+                               %i %pi (n - 1/2) x
+                               ------------------
+                                       N
+(%o21)                       %e
+sum( %, n, 1, N -1);
+                        %i %pi x                 %i %pi x
+                      - --------                 --------
+                          2 N       %i %pi x        N
+                    %e           (%e         - %e        )
+(%o22)              --------------------------------------
+                                  %i %pi x
+                                  --------
+                                     N
+                                %e         - 1
+(%i23) diff( diff( %, x), x); 
+                                                                      %i %pi x
+                    %i %pi x   %i %pi x                               --------
+                  - --------   --------                                  N
+                      2 N         N               %i %pi x   %i %pi %e
+         %i %pi %e           %e         (%i %pi %e         - -----------------)
+                                                                     N
+(%o23) - ----------------------------------------------------------------------
+                                       %i %pi x
+                                       --------
+                                          N         2
+                                  N (%e         - 1)
+                                                     %i %pi x
+              %i %pi x                               --------
+            - --------                                  N
+                2 N              %i %pi x   %i %pi %e
+   %i %pi %e           (%i %pi %e         - -----------------)
+                                                    N
+ - -----------------------------------------------------------
+                            %i %pi x
+                            --------
+                               N
+                       N (%e         - 1)
+                                                   %i %pi x
+            %i %pi x                               --------
+            --------                                  N
+              2 N              %i %pi x   %i %pi %e
+   %i %pi %e         (%i %pi %e         - -----------------)
+                                                  N
+ - ---------------------------------------------------------
+                           %i %pi x
+                           --------
+                              N         2
+                      N (%e         - 1)
+                        %i %pi x
+       %i %pi x         --------
+     - --------     2      N
+         2 N     %pi  %e              2   %i %pi x
+   %e           (--------------- - %pi  %e        )
+                        2
+                       N
+ + ------------------------------------------------
+                      %i %pi x
+                      --------
+                         N
+                    %e         - 1
+            %i %pi x                 %i %pi x    %i %pi x
+          - --------                 --------    --------
+      2       2 N       %i %pi x        N           N
+   %pi  %e           (%e         - %e        ) %e
+ - ------------------------------------------------------
+                           %i %pi x
+                           --------
+                      2       N         2
+                   2 N  (%e         - 1)
+            %i %pi x                 %i %pi x    %i %pi x
+            --------                 --------    --------
+        2     2 N       %i %pi x        N           N
+   2 %pi  %e         (%e         - %e        ) %e
+ - ------------------------------------------------------
+                          %i %pi x
+                          --------
+                     2       N         3
+                    N  (%e         - 1)
+            %i %pi x                 %i %pi x
+          - --------                 --------
+      2       2 N       %i %pi x        N
+   %pi  %e           (%e         - %e        )
+ - -------------------------------------------
+                      %i %pi x
+                      --------
+                 2       N
+              4 N  (%e         - 1)
+          %i %pi x                 %i %pi x
+          --------                 --------
+      2     2 N       %i %pi x        N
+   %pi  %e         (%e         - %e        )
+ + -----------------------------------------
+                    %i %pi x
+                    --------
+               2       N         2
+            2 N  (%e         - 1)
+                   %pi x          %pi x           %pi x
+(%o24) - (%pi (sin(-----) (2 (cos(-----) - 1) sin(-----)
+                    2 N             N               N
+                      %pi x
+              %pi sin(-----)
+      %pi x             N
+ (sin(-----) (-------------- - %pi sin(%pi x))
+        N           N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ + cos(-----) (%pi cos(%pi x) - --------------))
+         N                            N
+         %pi x      2      2 %pi x        %pi x
+ + ((cos(-----) - 1)  - sin (-----)) (cos(-----)
+           N                   N            N
+          %pi x
+  %pi sin(-----)
+            N                            %pi x
+ (-------------- - %pi sin(%pi x)) - sin(-----)
+        N                                  N
+                           %pi x
+                   %pi cos(-----)
+                             N             %pi x
+ (%pi cos(%pi x) - --------------))) - cos(-----)
+                         N                  2 N
+        %pi x      2      2 %pi x        %pi x
+ (((cos(-----) - 1)  - sin (-----)) (sin(-----)
+          N                   N            N
+          %pi x
+  %pi sin(-----)
+            N                            %pi x
+ (-------------- - %pi sin(%pi x)) + cos(-----)
+        N                                  N
+                           %pi x
+                   %pi cos(-----)
+                             N               %pi x           %pi x
+ (%pi cos(%pi x) - --------------)) - 2 (cos(-----) - 1) sin(-----)
+                         N                     N               N
+                      %pi x
+              %pi sin(-----)
+      %pi x             N
+ (cos(-----) (-------------- - %pi sin(%pi x))
+        N           N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ - sin(-----) (%pi cos(%pi x) - --------------)))))
+         N                            N
+      2 %pi x         %pi x      2 2
+/((sin (-----) + (cos(-----) - 1) )  N)
+          N             N
+               %pi x         %pi x      2      2 %pi x
+ - (%pi (- sin(-----) (((cos(-----) - 1)  - sin (-----))
+                2 N            N                   N
+          %pi x
+  %pi sin(-----)
+            N                               %pi x           %pi x
+ (-------------- - %pi sin(%pi x)) + 2 (cos(-----) - 1) sin(-----)
+        N                                     N               N
+                           %pi x
+                   %pi cos(-----)
+                             N            %pi x
+ (%pi cos(%pi x) - --------------)) - cos(-----)
+                         N                 2 N
+                                                              %pi x
+                                                      %pi cos(-----)
+        %pi x      2      2 %pi x                               N
+ (((cos(-----) - 1)  - sin (-----)) (%pi cos(%pi x) - --------------)
+          N                   N                             N
+                                          %pi x
+                                  %pi sin(-----)
+          %pi x           %pi x             N
+ - 2 (cos(-----) - 1) sin(-----) (-------------- - %pi sin(%pi x)))))
+            N               N           N
+      2 %pi x         %pi x      2 2
+/((sin (-----) + (cos(-----) - 1) )  N)
+          N             N
+                                               %pi x
+                                       %pi sin(-----)
+             %pi x        %pi x                  N
+ - (%pi (sin(-----) ((cos(-----) - 1) (-------------- - %pi sin(%pi x))
+              2 N           N                N
+                                        %pi x
+                                %pi cos(-----)
+       %pi x                              N
+ + sin(-----) (%pi cos(%pi x) - --------------))
+         N                            N
+                                                          %pi x
+                                                  %pi cos(-----)
+       %pi x        %pi x                                   N
+ - cos(-----) ((cos(-----) - 1) (%pi cos(%pi x) - --------------)
+        2 N           N                                 N
+                       %pi x
+               %pi sin(-----)
+       %pi x             N
+ - sin(-----) (-------------- - %pi sin(%pi x)))))
+         N           N
+      2 %pi x         %pi x      2            %pi x
+/((sin (-----) + (cos(-----) - 1) ) N) + (cos(-----)
+          N             N                      2 N
+                 2     %pi x
+              %pi  sin(-----)
+      %pi x              N         2
+ (sin(-----) (--------------- - %pi  sin(%pi x))
+        N            2
+                    N
+                        2     %pi x
+                     %pi  cos(-----)
+        %pi x                   N         2
+ + (cos(-----) - 1) (--------------- - %pi  cos(%pi x)))
+          N                 2
+                           N
+                                    2     %pi x
+                                 %pi  sin(-----)
+       %pi x        %pi x                   N         2
+ + sin(-----) ((cos(-----) - 1) (--------------- - %pi  sin(%pi x))
+        2 N           N                 2
+                                       N
+                  2     %pi x
+               %pi  cos(-----)
+       %pi x              N         2
+ - sin(-----) (--------------- - %pi  cos(%pi x))))
+         N            2
+                     N
+     2 %pi x         %pi x      2        2
+/(sin (-----) + (cos(-----) - 1) ) - (%pi
+         N             N
+      %pi x                     %pi x       %pi x
+ (cos(-----) ((sin(%pi x) - sin(-----)) sin(-----)
+       2 N                        N           N
+                     %pi x        %pi x
+ + (cos(%pi x) - cos(-----)) (cos(-----) - 1))
+                       N            N
+       %pi x        %pi x                         %pi x
+ + sin(-----) ((cos(-----) - 1) (sin(%pi x) - sin(-----))
+        2 N           N                             N
+                     %pi x       %pi x
+ - (cos(%pi x) - cos(-----)) sin(-----))))
+                       N           N
+        2 %pi x         %pi x      2   2
+/(4 (sin (-----) + (cos(-----) - 1) ) N )
+            N             N
+       2      %pi x                     %pi x
+ + (%pi  (cos(-----) ((cos(%pi x) - cos(-----))
+               2 N                        N
+       %pi x      2      2 %pi x            %pi x
+ ((cos(-----) - 1)  - sin (-----)) + 2 (cos(-----) - 1)
+         N                   N                N
+                   %pi x       %pi x         %pi x
+ (sin(%pi x) - sin(-----)) sin(-----)) - sin(-----)
+                     N           N            2 N
+                    %pi x         %pi x      2      2 %pi x
+ ((sin(%pi x) - sin(-----)) ((cos(-----) - 1)  - sin (-----))
+                      N             N                   N
+                       %pi x        %pi x           %pi x
+ - 2 (cos(%pi x) - cos(-----)) (cos(-----) - 1) sin(-----))))
+                         N            N               N
+        2 %pi x         %pi x      2 2  2
+/(2 (sin (-----) + (cos(-----) - 1) )  N )
+            N             N
+         2      %pi x                     %pi x
+ - (2 %pi  (cos(-----) ((cos(%pi x) - cos(-----))
+                 2 N                        N
+      %pi x          %pi x      2     %pi x       3 %pi x
+  sin(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+        N              N                N             N
+ (---------------------------------------------------------
+                 2 %pi x         %pi x      2 3
+             (sin (-----) + (cos(-----) - 1) )
+                     N             N
+       %pi x        %pi x      3          %pi x          2 %pi x
+   cos(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+         N            N                     N                N
+ + ---------------------------------------------------------------)
+                     2 %pi x         %pi x      2 3
+                 (sin (-----) + (cos(-----) - 1) )
+                         N             N
+                     %pi x
+ - (sin(%pi x) - sin(-----))
+                       N
+      %pi x        %pi x      3          %pi x          2 %pi x
+  sin(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+        N            N                     N                N
+ (---------------------------------------------------------------
+                    2 %pi x         %pi x      2 3
+                (sin (-----) + (cos(-----) - 1) )
+                        N             N
+       %pi x          %pi x      2     %pi x       3 %pi x
+   cos(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+         N              N                N             N
+ - ---------------------------------------------------------))
+                  2 %pi x         %pi x      2 3
+              (sin (-----) + (cos(-----) - 1) )
+                      N             N
+       %pi x                     %pi x
+ - sin(-----) ((sin(%pi x) - sin(-----))
+        2 N                        N
+      %pi x          %pi x      2     %pi x       3 %pi x
+  sin(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+        N              N                N             N
+ (---------------------------------------------------------
+                 2 %pi x         %pi x      2 3
+             (sin (-----) + (cos(-----) - 1) )
+                     N             N
+       %pi x        %pi x      3          %pi x          2 %pi x
+   cos(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+         N            N                     N                N
+ + ---------------------------------------------------------------)
+                     2 %pi x         %pi x      2 3
+                 (sin (-----) + (cos(-----) - 1) )
+                         N             N
+                     %pi x
+ + (cos(%pi x) - cos(-----))
+                       N
+      %pi x        %pi x      3          %pi x          2 %pi x
+  sin(-----) ((cos(-----) - 1)  - 3 (cos(-----) - 1) sin (-----))
+        N            N                     N                N
+ (---------------------------------------------------------------
+                    2 %pi x         %pi x      2 3
+                (sin (-----) + (cos(-----) - 1) )
+                        N             N
+       %pi x          %pi x      2     %pi x       3 %pi x
+   cos(-----) (3 (cos(-----) - 1)  sin(-----) - sin (-----))
+         N              N                N             N          2
+ - ---------------------------------------------------------))))/N
+                  2 %pi x         %pi x      2 3
+              (sin (-----) + (cos(-----) - 1) )
+                      N             N
+       2      %pi x                     %pi x
+ - (%pi  (sin(-----) ((sin(%pi x) - sin(-----))
+               2 N                        N
+         %pi x          2 %pi x        %pi x
+ (2 (cos(-----) - 1) sin (-----) + cos(-----)
+           N                N            N
+       %pi x      2      2 %pi x                        %pi x
+ ((cos(-----) - 1)  - sin (-----))) + (cos(%pi x) - cos(-----))
+         N                   N                            N
+      %pi x        %pi x      2      2 %pi x
+ (sin(-----) ((cos(-----) - 1)  - sin (-----))
+        N            N                   N
+          %pi x           %pi x      %pi x
+ - 2 (cos(-----) - 1) cos(-----) sin(-----)))
+            N               N          N
+       %pi x                     %pi x
+ + cos(-----) ((cos(%pi x) - cos(-----))
+        2 N                        N
+         %pi x          2 %pi x        %pi x
+ (2 (cos(-----) - 1) sin (-----) + cos(-----)
+           N                N            N
+       %pi x      2      2 %pi x                        %pi x
+ ((cos(-----) - 1)  - sin (-----))) - (sin(%pi x) - sin(-----))
+         N                   N                            N
+      %pi x        %pi x      2      2 %pi x
+ (sin(-----) ((cos(-----) - 1)  - sin (-----))
+        N            N                   N
+          %pi x           %pi x      %pi x
+ - 2 (cos(-----) - 1) cos(-----) sin(-----)))))
+            N               N          N
+        2 %pi x         %pi x      2 2  2
+/(2 (sin (-----) + (cos(-----) - 1) )  N )
+            N             N
+trigsimp(%);
+trigreduce(%);
+trigsimp(%);
+define( t_ab(x), %);
+
+/* t_ab : 0 のとき */
+-(n -1/2)**2; /* (n -1/2) */
+sum( %, n, 1, N -1);
+t_ab_zero : %pi**2 /N**2 *%;
+
+
+/* 解 */
+
+/* 場合分け 1 */
+case1 : (t_ab(A)-t_ab(B))/(dx**2 * N); 
+define(T1(N), case1);
+limit(T1(N), N, inf);
+case1_answer: %;
+
+/* 場合分け 2 */
+               2                %pi x         2                %pi x
+(%o25) (((4 %pi  cos(%pi x) sin(-----) - 4 %pi  sin(%pi x) cos(-----))
+                                 2 N                            2 N
+    3 %pi x             2                %pi x         2                %pi x
+ sin (-----) + ((- 4 %pi  sin(%pi x) sin(-----) - 4 %pi  cos(%pi x) cos(-----))
+        N                                 2 N                            2 N
+     %pi x          2                %pi x          2                %pi x
+ cos(-----) + 12 %pi  sin(%pi x) sin(-----) + 12 %pi  cos(%pi x) cos(-----))
+       N                              2 N                             2 N
+    2 %pi x           2                %pi x         2                %pi x
+ sin (-----) + ((8 %pi  cos(%pi x) sin(-----) - 8 %pi  sin(%pi x) cos(-----))
+        N                               2 N                            2 N
+     %pi x         2                %pi x         2                %pi x
+ cos(-----) - 8 %pi  cos(%pi x) sin(-----) + 8 %pi  sin(%pi x) cos(-----))
+       N                             2 N                            2 N
+     %pi x           2                %pi x          2                %pi x
+ sin(-----) + (16 %pi  sin(%pi x) sin(-----) + 16 %pi  cos(%pi x) cos(-----))
+       N                               2 N                             2 N
+     %pi x          2                %pi x          2                %pi x    2
+ cos(-----) - 16 %pi  sin(%pi x) sin(-----) - 16 %pi  cos(%pi x) cos(-----)) N
+       N                              2 N                             2 N
+           2                %pi x     3 %pi x
+ + (- 8 %pi  cos(%pi x) sin(-----) sin (-----)
+                             2 N          N
+         2                %pi x      %pi x          2                %pi x
+ + (8 %pi  sin(%pi x) sin(-----) cos(-----) - 24 %pi  sin(%pi x) sin(-----)
+                           2 N         N                              2 N
+        2                %pi x      2 %pi x
+ - 8 %pi  cos(%pi x) cos(-----)) sin (-----)
+                          2 N           N
+          2                %pi x          2                %pi x      %pi x
+ + (16 %pi  cos(%pi x) sin(-----) - 16 %pi  cos(%pi x) sin(-----) cos(-----))
+                            2 N                             2 N         N
+     %pi x             2                %pi x          2                %pi x
+ sin(-----) + (- 32 %pi  sin(%pi x) sin(-----) - 16 %pi  cos(%pi x) cos(-----))
+       N                                 2 N                             2 N
+     %pi x          2                %pi x          2                %pi x
+ cos(-----) + 32 %pi  sin(%pi x) sin(-----) + 16 %pi  cos(%pi x) cos(-----)) N
+       N                              2 N                             2 N
+        2      2                 %pi x         2                %pi x
+ + ((%pi  - %pi  cos(%pi x)) sin(-----) - 3 %pi  sin(%pi x) cos(-----))
+                                  2 N                            2 N
+    3 %pi x         2                %pi x
+ sin (-----) + ((%pi  sin(%pi x) sin(-----)
+        N                             2 N
+       2        2                 %pi x       %pi x
+ + (%pi  - 3 %pi  cos(%pi x)) cos(-----)) cos(-----)
+                                   2 N          N
+        2                %pi x          2                 2      %pi x
+ + 5 %pi  sin(%pi x) sin(-----) + (5 %pi  cos(%pi x) + %pi ) cos(-----))
+                          2 N                                     2 N
+    2 %pi x            2                   2      %pi x
+ sin (-----) + (((2 %pi  cos(%pi x) - 2 %pi ) sin(-----)
+        N                                          2 N
+        2                %pi x       %pi x
+ - 2 %pi  sin(%pi x) cos(-----)) cos(-----)
+                          2 N          N
+         2        2                 %pi x         2                %pi x
+ + (2 %pi  - 2 %pi  cos(%pi x)) sin(-----) + 2 %pi  sin(%pi x) cos(-----))
+                                     2 N                            2 N
+     %pi x           2                %pi x
+ sin(-----) + (12 %pi  sin(%pi x) sin(-----)
+       N                               2 N
+         2                   2      %pi x       %pi x
+ + (4 %pi  cos(%pi x) + 4 %pi ) cos(-----)) cos(-----)
+                                     2 N          N
+         2                %pi x            2                   2      %pi x
+ - 12 %pi  sin(%pi x) sin(-----) + (- 4 %pi  cos(%pi x) - 4 %pi ) cos(-----))
+                           2 N                                         2 N
+        3 %pi x          2 %pi x           %pi x        2
+/((8 cos (-----) - 24 cos (-----) + 24 cos(-----) - 8) N )
+            N                N               N
+case2 : (t_ab_zero -t_ab(B))/(dx**2 * N); 
+define(T2(N), case2);
+limit(T2(N), N, inf);
+case2_answer: %;
+
+/* 出力 Fortran, Latex */
+fortran( ev( case1_answer, f1, f2));
+fortran( ev( case2_answer, f1, f2));
+tex( ev( case1_answer, f1, f2));
+tex( ev( case2_answer, f1, f2));
+
+
+
+                              2     7 %pi x
+                           %pi  cos(------- - %pi x)
+                                      2 N
+(%o26) ------------------------------------------------------------------
+             3 %pi x   2          2 %pi x   2           %pi x   2       2
+       8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+                N                    N                    N
+                           2     5 %pi x
+                      5 %pi  cos(------- - %pi x)
+                                   2 N
+ - ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                           2     3 %pi x
+                      9 %pi  cos(------- + %pi x)
+                                   2 N
+ - ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                             2     %pi x
+                       29 %pi  cos(----- + %pi x)
+                                    2 N
+ + ------------------------------------------------------------------
+         3 %pi x   2          2 %pi x   2           %pi x   2       2
+   8 cos(-------) N  - 48 cos(-------) N  + 120 cos(-----) N  - 80 N
+            N                    N                    N
+                      2     7 %pi x
+                   %pi  cos(------- - %pi x)
+                              2 N
+ - ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     5 %pi x
+                  7 %pi  cos(------- - %pi x)
+                               2 N
+ + ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     3 %pi x
+                  3 %pi  cos(------- + %pi x)
+                               2 N
+ + ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                     2     3 %pi x
+                9 %pi  cos(------- - %pi x)
+                             2 N
+ - ------------------------------------------------------
+        3 %pi x          2 %pi x           %pi x
+   (cos(-------) - 6 cos(-------) + 15 cos(-----) - 10) N
+           N                N                N
+                        2     %pi x
+                  13 %pi  cos(----- + %pi x)
+                               2 N
+ - ---------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x
+   (2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20) N
+             N                 N                N
+                       2     %pi x
+                 11 %pi  cos(----- - %pi x)
+                              2 N
+ + ------------------------------------------------------
+        3 %pi x          2 %pi x           %pi x
+   (cos(-------) - 6 cos(-------) + 15 cos(-----) - 10) N
+           N                N                N
+                       2     3 %pi x
+                  9 %pi  cos(------- - %pi x)
+                               2 N
+ + ----------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x         2
+   (4 cos(-------) - 24 cos(-------) + 60 cos(-----) - 40) N
+             N                 N                N
+                         2     %pi x
+                   17 %pi  cos(----- - %pi x)
+                                2 N
+ - ----------------------------------------------------------
+          3 %pi x           2 %pi x           %pi x         2
+   (4 cos(-------) - 24 cos(-------) + 60 cos(-----) - 40) N
+             N                 N                N
+                    2     7 %pi x
+                 %pi  cos(------- - %pi x)
+                            2 N
+ + -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                     2     5 %pi x
+                5 %pi  cos(------- - %pi x)
+                             2 N
+ - -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                    2     3 %pi x
+                 %pi  cos(------- + %pi x)
+                            2 N
+ - -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                   2     3 %pi x
+              5 %pi  cos(------- - %pi x)
+                           2 N
+ + --------------------------------------------------
+       3 %pi x          2 %pi x           %pi x
+   cos(-------) - 6 cos(-------) + 15 cos(-----) - 10
+          N                N                N
+                      2     %pi x
+                 5 %pi  cos(----- + %pi x)
+                             2 N
+ + -----------------------------------------------------
+         3 %pi x           2 %pi x           %pi x
+   2 cos(-------) - 12 cos(-------) + 30 cos(-----) - 20
+            N                 N                N
+                    2     %pi x
+               5 %pi  cos(----- - %pi x)
+                           2 N
+ - --------------------------------------------------
+       3 %pi x          2 %pi x           %pi x
+   cos(-------) - 6 cos(-------) + 15 cos(-----) - 10
+          N                N                N
+(%i27)                 2  2         2          2      2 %pi x N + 3 %pi x
+(%o27) - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                       2 N
+            2  2         2           2      2 %pi x N + %pi x
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi x N - %pi x
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi x N - 3 %pi x
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi x N - 5 %pi x
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi x N - 7 %pi x
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi x           2 %pi x            %pi x         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+(%i28)                            2  2         2          2      2 %pi x N + 3 %pi x
+(%o28) t_ab(x) := - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                                  2 N
+            2  2         2           2      2 %pi x N + %pi x
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi x N - %pi x
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi x N - 3 %pi x
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi x N - 5 %pi x
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi x N - 7 %pi x
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi x           2 %pi x            %pi x         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+(%i29)                                          1 2
+(%o29)                            - (n - -)
+                                         2
+                        3            2                  2
+           N + 2 (N - 1)  + 3 (N - 1)  - 1   N + (N - 1)  - 1   N - 1
+(%o30)   - ------------------------------- + ---------------- - -----
+                          6                         2             4
+(%i31)                             3            2                  2
+          2    N + 2 (N - 1)  + 3 (N - 1)  - 1   N + (N - 1)  - 1   N - 1
+       %pi  (- ------------------------------- + ---------------- - -----)
+                              6                         2             4
+(%o31) -------------------------------------------------------------------
+                                        2
+                                       N
+(%i32)                2  2         2          2      2 %pi B N + 3 %pi B
+(%o32) (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                      2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+          2  2         2          2      2 %pi A N + 3 %pi A
+ - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N + %pi A
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi A N - %pi A
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N - 3 %pi A
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi A N - 5 %pi A
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi A N - 7 %pi A
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi A           2 %pi A            %pi A         2      2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N ))/(dx  N)
+            N                 N                 N
+                        2  2         2          2      2 %pi B N + 3 %pi B
+(%o33) T1(N) := (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                               2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+          2  2         2          2      2 %pi A N + 3 %pi A
+ - ((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N + %pi A
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi A N - %pi A
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi A N - 3 %pi A
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi A N - 5 %pi A
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi A N - 7 %pi A
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi A           2 %pi A            %pi A         2      2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N ))/(dx  N)
+            N                 N                 N
+(%i34)            2   3  2               2             3       3
+(%o34) (%pi  (A  B  sin(%pi B) - A  sin(%pi A) B ) - 2 A  sin(%pi B)
+           3                                3                  3
+ + %pi (2 A  B cos(%pi B) - 2 A cos(%pi A) B ) + 2 sin(%pi A) B )
+        2  3  3
+/(%pi dx  A  B )
+(%i35)            2   3  2               2             3       3
+(%o35) (%pi  (A  B  sin(%pi B) - A  sin(%pi A) B ) - 2 A  sin(%pi B)
+           3                                3                  3
+ + %pi (2 A  B cos(%pi B) - 2 A cos(%pi A) B ) + 2 sin(%pi A) B )
+        2  3  3
+/(%pi dx  A  B )
+(%i36)                2  2         2          2      2 %pi B N + 3 %pi B
+(%o36) (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                      2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+                        3            2                  2
+      2    N + 2 (N - 1)  + 3 (N - 1)  - 1   N + (N - 1)  - 1   N - 1
+   %pi  (- ------------------------------- + ---------------- - -----)
+                          6                         2             4        2
+ + -------------------------------------------------------------------)/(dx  N)
+                                    2
+                                   N
+                        2  2         2          2      2 %pi B N + 3 %pi B
+(%o37) T2(N) := (((4 %pi  N  - 12 %pi  N + 9 %pi ) cos(-------------------)
+                                                               2 N
+            2  2         2           2      2 %pi B N + %pi B
+ + (- 20 %pi  N  + 52 %pi  N - 29 %pi ) cos(-----------------)
+                                                   2 N
+          2  2         2           2      2 %pi B N - %pi B
+ + (40 %pi  N  - 88 %pi  N + 34 %pi ) cos(-----------------)
+                                                 2 N
+            2  2         2           2      2 %pi B N - 3 %pi B
+ + (- 40 %pi  N  + 72 %pi  N - 18 %pi ) cos(-------------------)
+                                                    2 N
+          2  2         2          2      2 %pi B N - 5 %pi B
+ + (20 %pi  N  - 28 %pi  N + 5 %pi ) cos(-------------------)
+                                                 2 N
+           2  2        2        2      2 %pi B N - 7 %pi B
+ + (- 4 %pi  N  + 4 %pi  N - %pi ) cos(-------------------))
+                                               2 N
+         3 %pi B           2 %pi B            %pi B         2
+/((8 cos(-------) - 48 cos(-------) + 120 cos(-----) - 80) N )
+            N                 N                 N
+                        3            2                  2
+      2    N + 2 (N - 1)  + 3 (N - 1)  - 1   N + (N - 1)  - 1   N - 1
+   %pi  (- ------------------------------- + ---------------- - -----)
+                          6                         2             4        2
+ + -------------------------------------------------------------------)/(dx  N)
+                                    2
+                                   N
+(%i38)                 2  2                                                     3  3
+         - 3 %pi  B  sin(%pi B) + 6 sin(%pi B) - 6 %pi B cos(%pi B) + %pi  B
+(%o38) - --------------------------------------------------------------------
+                                             2  3
+                                     3 %pi dx  B
+(%i39)                 2  2                                                     3  3
+         - 3 %pi  B  sin(%pi B) + 6 sin(%pi B) - 6 %pi B cos(%pi B) + %pi  B
+(%o39) - --------------------------------------------------------------------
+                                             2  3
+                                     3 %pi dx  B
+(%i40)       (%pi**2*((i-j)**3*(j+i)**2*sin(%pi*(j+i))-sin(%pi*(i-j))*(i-j)**2*
+     1   (j+i)**3)-2*(i-j)**3*sin(%pi*(j+i))+%pi*(2*(i-j)**3*(j+i)*cos(%
+     2   pi*(j+i))-2*cos(%pi*(i-j))*(i-j)*(j+i)**3)+2*sin(%pi*(i-j))*(j+
+     3   i)**3)/(%pi*dx**2*(i-j)**3*(j+i)**3)
+(%o40)                               done
+(%i41)       -(-3*%pi**2*(j+i)**2*sin(%pi*(j+i))+6*sin(%pi*(j+i))-6*%pi*(j+i)*c
+     1   os(%pi*(j+i))+%pi**3*(j+i)**3)/(%pi*dx**2*(j+i)**3)/3.d+0
+(%o41)                               done
+(%i42) $${{\pi^2\,\left(\left(i-j\right)^3\,\left(j+i\right)^2\,\sin \left(
+ \pi\,\left(j+i\right)\right)-\sin \left(\pi\,\left(i-j\right)\right)
+ \,\left(i-j\right)^2\,\left(j+i\right)^3\right)-2\,\left(i-j\right)^
+ 3\,\sin \left(\pi\,\left(j+i\right)\right)+\pi\,\left(2\,\left(i-j
+ \right)^3\,\left(j+i\right)\,\cos \left(\pi\,\left(j+i\right)\right)
+ -2\,\cos \left(\pi\,\left(i-j\right)\right)\,\left(i-j\right)\,
+ \left(j+i\right)^3\right)+2\,\sin \left(\pi\,\left(i-j\right)\right)
+ \,\left(j+i\right)^3}\over{\pi\,{\it dx}^2\,\left(i-j\right)^3\,
+ \left(j+i\right)^3}}$$
+(%o42)                               false
+(%i43) $$-{{-3\,\pi^2\,\left(j+i\right)^2\,\sin \left(\pi\,\left(j+i\right)
+ \right)+6\,\sin \left(\pi\,\left(j+i\right)\right)-6\,\pi\,\left(j+i
+ \right)\,\cos \left(\pi\,\left(j+i\right)\right)+\pi^3\,\left(j+i
+ \right)^3}\over{3\,\pi\,{\it dx}^2\,\left(j+i\right)^3}}$$
+(%o43)                               false
+(%i44) 

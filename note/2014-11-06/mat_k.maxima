@@ -1,0 +1,12 @@
+
+k    :  (2*m*E)**(1/2);
+u(r) := r*(A*j(k*r)+B*n(k*r));
+define( diff_u(r), diff(u(r),r) );
+u(r)/(r*diff_u(r));
+r1   : %;
+ev( r1, B = -K*A );
+r2   : %;
+solve( R = r2, K );
+k1   : %;
+fortran(k1);
+tex(k1);

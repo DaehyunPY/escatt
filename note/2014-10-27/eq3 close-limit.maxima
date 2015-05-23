@@ -1,0 +1,61 @@
+/* 方程式 */
+
+	/* 座標、関数 宣言 */
+	declare(i, integer, j, integer, k, integer, l, integer, dx, real);
+	assume(i > 0, j > 0, k > 0, l > 0, dx > 0);
+	declare(b, real, n, integer, x, real, L, real); 
+	assume(b > 0, n > 0, x >= 0, L > 0);
+	x(i) := dx * i; b : dx * k; L : dx * l;
+	phi(x) := sin( (n-1/2)*%pi*x/b ) * (2/L)**(1/2);
+	integrate(phi(x)**2, x, 0, L); 
+
+	define(phi(n, x), phi(x)); 
+	define(ddphi(n, x), diff(diff(phi(n, x), x), x));
+
+	/* 変数 変換 */
+	declare(A, integer, B, integer);
+	assume(B >= 0);
+	T_ij : dx * sum(phi(n, x(i)) * ddphi(n, x(j)), n, 1, l); 
+	f1: A = (i -j); f2: B = (i +j); solve([f1, f2], [i, j]); ev(T_ij, %);
+	trigreduce(%, A); trigreduce(%); trigsimp(%); 
+	T_ab : %;
+
+
+/* 三角関数を指数関数に直して解く */
+
+	/* t_ab : 確認 */
+	simpsum : false;
+	exp(%i * %pi/k * (n -1/2) * x); sum(%, n, 1, l); diff(diff(%, x), x); realpart(%);
+	define(t_ab_check(x), %);
+
+	/* t_ab : 場合分け 1, 0 でないとき */
+	simpsum : ture; sumexpand : ture; cauchysum : ture;
+	exp(%i * %pi/k * (n -1/2) * x); sum(%, n, 1, l); diff(diff(%, x), x); realpart(%);
+	trigsimp(%); trigreduce(%); trigsimp(%); ratsimp(%);
+	define(t_ab(x), %);
+
+	/* t_ab : 場合分け 2, 0 のとき */
+	simpsum : ture; sumexpand : ture; cauchysum : ture;
+	-(n -1/2)**2; sum(%, n, 1, l);
+	t_ab_zero : %pi**2 /k**2 *%;
+
+
+/* 解 */
+
+	/* t_ab : 確認 */
+	(t_ab_check(A)-t_ab_check(B))/(dx**2*l); trigsimp(%);
+	T_ab;
+
+	/* t_ab : 場合分け 1, 0 でないとき */
+	(t_ab(A)-t_ab(B))/(dx**2*l); case1 : %;
+	case1_answer: %;
+
+	/* t_ab : 場合分け 2, 0 のとき */
+	(t_ab_zero -t_ab(B))/(dx**2*l); case2 : %;
+	case2_answer: %;
+
+	/* 出力 Fortran, Latex */
+	fortran( ev( case1_answer, f1, f2));
+	fortran( ev( case2_answer, f1, f2));
+	tex( ev( case1_answer, f1, f2));
+	tex( ev( case2_answer, f1, f2));
