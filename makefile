@@ -71,6 +71,13 @@ ${TARGET}: ${OBJECTS}; ${FORTRAN} -o $@ ${OBJECTS} ${LDFLAGS}
 ##### FILE DEPENDENCIES ##########################
 ##################################################
 
-${OBJECTS}: ${COMMON_MOD}
-# main.o: input.o
-# input.o: diag.o
+# ${OBJECTS}: ${COMMON_MOD}
+nrutil-f2008.o: nrtype-f2008.o 
+plgndr-dp.o: nrtype-f2008.o nrutil-f2008.o 
+main.o: const.o global.o hamiltonian.o basis.o boundary.o inner.o outer.o
+outer.o: const.o global.o hamiltonian.o 
+inner.o: const.o global.o hamiltonian.o 
+boundary.o: const.o global.o 
+basis.o: const.o global.o hamiltonian.o 
+hamiltonian.o: const.o global.o
+global.o: const.o 

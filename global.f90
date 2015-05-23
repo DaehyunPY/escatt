@@ -2,9 +2,9 @@ module global
     use kind_type 
     implicit none
     real   (RDP), save :: Mass, Kinet, Charge 
-    real   (RDP), save :: ra, dr, dtheta
-    integer(I4B), save :: N, L, pr, ptheta 
-    real   (RDP), save, allocatable :: H(:, :), E(:), R(:), K(:)
+    real   (RDP), save :: ra, dr, dtheta, dE 
+    integer(I4B), save :: N, L, pr, ptheta, pE  
+    real   (RDP), save, allocatable :: H(:, :), E(:), R(:), K(:), CS(:)
     complex(CDP), save, allocatable :: S(:), inner_u(:, :)
 
     interface

@@ -7,18 +7,23 @@ contains
 
 function coord_r(i)
     integer(I4B), intent(in) :: i
-    real(RDP) :: coord_r
-
+    real   (RDP) :: coord_r
     coord_r = dr*dble(i)
 end function coord_r
 
 
 function coord_theta(i)
     integer(I4B), intent(in) :: i
-    real(RDP) :: coord_theta
-
+    real   (RDP) :: coord_theta
     coord_theta = dtheta*dble(i)
 end function coord_theta
+
+
+function coord_E(i)
+    integer(I4B), intent(in) :: i
+    real   (RDP) :: coord_E 
+    coord_E = dE*dble(i)
+end function coord_E
 
 
 function nabla_x(int_i, int_j)
@@ -46,7 +51,6 @@ end function nabla_x
 function Poten(r)
     real(RDP), intent(in) :: r
     real(RDP) :: Poten
-
     Poten = Charge*r**2.d0*exp(-r)
 end function Poten
 
@@ -70,29 +74,31 @@ subroutine PROC_input
     character(30), parameter :: form_particle    = '(////, 2(40X, 1F10.4, /), /)'
     character(30), parameter :: form_potential   = '(////, 1(40X, 1F10.4, /), /)'
     character(60), parameter :: form_calculation = '(////, 1(40X, 1F10.4, /), 2(40X, 1I10, /), /)'
-    character(30), parameter :: form_plot        = '(////, 2(40X, 1I10, /), /)'
+    character(30), parameter :: form_plot        = '(////, 3(40X, 1I10, /), /)'
 !     real(RDP),     parameter :: pi = 2.0d0*acos(0.0d0) 
 
     open(file_input, file = "inout/input.d")
     read(file_input, form_particle)    Mass, Kinet
     read(file_input, form_potential)   Charge
     read(file_input, form_calculation) ra, N, L 
-    read(file_input, form_plot)        pr, ptheta 
+    read(file_input, form_plot)        pr, ptheta, pE 
     close(file_input) 
 
     dr     = ra/dble(N) 
     dtheta = pi/dble(ptheta)
+    dE     = Kinet/dble(pE)
 !     dtheta = (2.d0*pi)/dble(ptheta)
 
     allocate(H(1:N, 1:N), E(1:N))
     allocate(R(0:L), K(0:L), S(0:L))
-    allocate(inner_u(0:L, 1:N))
+    allocate(inner_u(0:L, 1:N), CS(1:pE))
     H(:, :)       = 0.d0
     E(:)          = 0.d0
     R(:)          = 0.d0
     K(:)          = 0.d0
     S(:)          = 0.d0
     inner_u(:, :) = 0.d0
+    CS(:)         = 0.d0 
 end subroutine PROC_input
 
 
@@ -112,6 +118,6 @@ end subroutine PROC_Poten_plot
 subroutine PROC_out 
     deallocate(H, E)
     deallocate(R, K, S)
-    deallocate(inner_u)
+    deallocate(inner_u, CS)
 end subroutine PROC_out 
 end module hamiltonian 
