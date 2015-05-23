@@ -2,27 +2,30 @@ module basis
     use kind_type 
     use global 
     implicit none
-    real(RDP), save, allocatable, private, protected :: tmp_H(:, :), tmp_E(:)
+    real(DP), save, allocatable, private, protected :: tmp_H(:, :), tmp_E(:)
 contains
 
 
 subroutine diag
     character(1), parameter :: jobz = 'Vectors', uplo = 'Upper' 
-    integer(I8B) :: n, lda, lwork
-    integer(I1B) :: info 
-    real   (RDP), allocatable :: work(:)
+    integer (I8) :: n, lda, lwork
+    integer (I1) :: info 
+    real    (DP), allocatable :: work(:)
 
 !     n     = 2*N
 !     lda   = n
     n     = size(tmp_H(:, 1))
     lda   = size(tmp_H(1, :))
     lwork = 3*n -1
-    allocate(work(1:3*n -1))
+    allocate(work(1:lwork))
     info  = 0
 
-!     lwork = -1
-!     call DSYEV(jobz, uplo, n, tmp_H, lda, tmp_E, work, lwork, info)
-!     lwork = int(work(1))
+    lwork = -1
+    call DSYEV(jobz, uplo, n, tmp_H, lda, tmp_E, work, lwork, info)
+    lwork = int(work(1))
+    deallocate(work)
+    allocate(work(1:lwork))
+
     call DSYEV(jobz, uplo, n, tmp_H, lda, tmp_E, work, lwork, info)
     if(info /= 0) stop "subroutine diag: Error. (2)"  
     deallocate(work)
@@ -31,11 +34,11 @@ end subroutine diag
 
 subroutine correct(num, ty)
     character(30), parameter :: form_out = '(1A15, 1I15, 1ES15.3)'
-    integer(I4B), intent(in)  :: num 
-    integer(I1B), intent(out) :: ty   
-    real   (RDP) :: tmp, sign, c1, c2
-    real   (RQP) :: sum 
-    integer(I4B) :: i, j
+    integer  (I4), intent(in)  :: num 
+    integer  (I1), intent(out) :: ty   
+    real     (DP) :: tmp, sign, c1, c2
+    real     (QP) :: sum 
+    integer  (I4) :: i, j
 
     sum = 0.d0 
     do i = 1, N 
@@ -44,7 +47,7 @@ subroutine correct(num, ty)
         sum = sum +tmp*tmp*dr 
     end do 
     if(sum < 1.d-20) ty = 0 
-!     write(*, form_out) "correct: ", num, dble(sum) 
+    write(file_log, form_out) "correct: ", num, dble(sum) 
 
     if(tmp_H(1, 2*num -1)*tmp_H(1, 2*num) > 0.d0) then 
         sign = 1.d0 
@@ -61,15 +64,15 @@ end subroutine correct
 
 
 subroutine stnad
-    real   (RQP) :: sum 
-    integer(I4B) :: i, j 
+    real   (QP) :: sum 
+    integer(I4) :: i, j 
 
     do j = 1, N
         sum = 0.d0 
         do i = 1, N 
             sum = sum +H(j, i)*H(j, i)*dr
         end do 
-        write(*, *) j, dble(sum)
+        write(file_log, *) j, dble(sum)
         H(j, :) = H(j, :)/sum**0.5d0 
     end do  
 end subroutine stnad
@@ -91,10 +94,10 @@ end subroutine stnad
 subroutine PROC_H(l) 
     use hamiltonian, only: coord_r, nabla_x, Poten
     character(30), parameter  :: form_out = '(1A15, 10F10.3)'
-    integer (I4B), intent(in) :: l 
-    real    (RDP) :: sign, tmp 
-    integer (I4B) :: i, j, u, v, num
-    integer (I1B) :: ty 
+    integer  (I4), intent(in) :: l 
+    real     (DP) :: sign, tmp 
+    integer  (I4) :: i, j, u, v, num
+    integer  (I1) :: ty 
 
     allocate(tmp_H(1:2*N, 1:2*N), tmp_E(1:2*N))
     tmp_H(:, :) = 0.d0 
@@ -147,18 +150,18 @@ subroutine PROC_H(l)
     deallocate(tmp_H, tmp_E)
 
 !     call stnad
-    write(*, form_out) "Energy: ", (E(i), i = 1, 10)
+    write(file_log, form_out) "Energy: ", (E(i), i = 1, 10)
 end subroutine PROC_H
 
 
 subroutine PROC_basis_plot 
     use hamiltonian, only: coord_r
-    integer (I1B), parameter :: file_psi = 101,           file_ene = 102
+    integer  (I1), parameter :: file_psi = 101,           file_ene = 102
     character(30), parameter :: form_psi = '(30ES25.10)', form_ene = '(1I5, 1ES25.10)'
-    integer (I4B) :: i, j 
+    integer  (I4) :: i, j 
 
-    open(file_psi, file = "inout/basis_psi.d")
-    open(file_ene, file = "inout/basis_energy.d")
+    open(file_psi, file = "output/basis_psi.d")
+    open(file_ene, file = "output/basis_energy.d")
     write(file_psi, form_psi) 0.d0, 0.d0, 0.d0, 0.d0, 0.d0, 0.d0
     do i = 1, N 
         write(file_psi, form_psi) coord_r(i), (H(j, i), j = 1, 5), H(N, i)

@@ -2,16 +2,16 @@ module inner
     use kind_type 
     use global 
     implicit none
-    complex(CDP), save, allocatable, private, protected :: inner_a(:)
+    complex(DP), save, allocatable, private, protected :: inner_a(:)
 contains 
     
 
 ! subroutine inner_coeff(l)
 !     use math_const, only: i => math_i 
-!     integer(I4B), intent(in) :: l 
-!     real   (RDP) :: ka, tmp2 
-!     complex(CDP) :: tmp1 
-!     integer(I4B) :: j
+!     integer(I4), intent(in) :: l 
+!     real   (DP) :: ka, tmp2 
+!     complex(DP) :: tmp1 
+!     integer(I4) :: j
 
 !     ka   = (2.d0*Mass*Kinet)**0.5d0*ra
 !     tmp1 = A(l)*(bessel_jn(l, ka) -K(l)*bessel_yn(l, ka))
@@ -23,11 +23,11 @@ contains
 subroutine inner_coeff(l)
     use math_const, only: i => math_i 
     use nr, only: sphbes_s
-    integer(I4B), intent(in) :: l 
-    real   (RSP) :: ka, sb_j, sb_y, diff_j, diff_y 
-    real   (RDP) :: tmp2 
-    complex(CDP) :: tmp1 
-    integer(I4B) :: j
+    integer(I4), intent(in) :: l 
+    real   (SP) :: ka, sb_j, sb_y, diff_j, diff_y 
+    real   (DP) :: tmp2 
+    complex(DP) :: tmp1 
+    integer(I4) :: j
 
     ka = (2.d0*Mass*Kinet)**0.5d0*ra
     call sphbes_s(l, ka, sb_j, sb_y, diff_j, diff_y)
@@ -53,9 +53,9 @@ end subroutine inner_coeff
 
 
 subroutine PROC_inner_achive(l)
-    integer(I4B), intent(in) :: l 
-    complex(CQP) :: sum 
-    integer(I4B) :: i, j
+    integer(I4), intent(in) :: l 
+    complex(QP) :: sum 
+    integer(I4) :: i, j
 
     allocate(inner_a(1:N))
     call inner_coeff(l) 
@@ -74,13 +74,13 @@ subroutine PROC_inner_plot ! It must be called after PROC_input, PROC_H, PROC_bo
     use math_const,  only: pi => math_pi
     use hamiltonian, only: coord_r, coord_theta
     use nr, only: plgndr_s
-    integer (I1B), parameter :: file_psi1 = 101, file_psi2 = 102
+    integer  (I1), parameter :: file_psi1 = 101, file_psi2 = 102
     character(30), parameter :: form_psi  = '(30ES25.10)'
-    real    (RSP) :: tmp 
-    complex (CQP) :: sum 
-    integer (I4B) :: i, j, k 
+    real     (SP) :: tmp 
+    complex  (QP) :: sum 
+    integer  (I4) :: i, j, k 
 
-    open(file_psi1, file = "inout/inner_u0.d")
+    open(file_psi1, file = "output/inner_u0.d")
     sum = 0.d0 
     do i = 1, N
         sum = inner_u(0, i)
@@ -88,7 +88,7 @@ subroutine PROC_inner_plot ! It must be called after PROC_input, PROC_H, PROC_bo
     end do 
     close(file_psi1)
 
-    open(file_psi2, file = "inout/inner_psi.d")
+    open(file_psi2, file = "output/inner_psi.d")
     do i = 1, N, N/pr 
         do j = 0, ptheta
             sum = 0.d0 

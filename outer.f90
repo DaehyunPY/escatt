@@ -2,14 +2,14 @@ module outer
     use kind_type
     use global 
     implicit none
-    complex(CDP), save, allocatable, private, protected :: outer_f(:)
+    complex(DP), save, allocatable, private, protected :: outer_f(:)
 contains 
     
 
 subroutine mat_f 
     use math_const, only: i => math_i
-    real   (RDP) :: k, tmp1, tmp2 
-    integer(I4B) :: j 
+    real   (DP) :: k, tmp1, tmp2 
+    integer(I4) :: j 
 
     k = (2.d0*Mass*Kinet)**0.50
     do j = 0, L 
@@ -21,20 +21,20 @@ end subroutine mat_f
 
 
 ! function outer_u(l, r)
-!     integer(I4B), intent(in) :: l 
-!     real   (RDP), intent(in) :: r 
-!     real   (RDP) :: kr
-!     complex(CDP) :: outer_u
+!     integer(I4), intent(in) :: l 
+!     real   (DP), intent(in) :: r 
+!     real   (DP) :: kr
+!     complex(DP) :: outer_u
 
 !     kr      = (2.d0*Mass*Kinet)**0.5d0*r
 !     outer_u = A(l)*(bessel_jn(l, kr) -K(l)*bessel_yn(l, kr))*r 
 ! end function outer_u
 function outer_u(l, r)
     use nr, only: sphbes_s
-    integer(I4B), intent(in) :: l 
-    real   (RDP), intent(in) :: r 
-    real   (RSP) :: kr, sb_j, sb_y, diff_j, diff_y 
-    complex(CDP) :: outer_u
+    integer(I4), intent(in) :: l 
+    real   (DP), intent(in) :: r 
+    real   (SP) :: kr, sb_j, sb_y, diff_j, diff_y 
+    complex(DP) :: outer_u
 
     kr = (2.d0*Mass*Kinet)**0.5d0*r
     call sphbes_s(l, kr, sb_j, sb_y, diff_j, diff_y)
@@ -60,20 +60,20 @@ subroutine PROC_CS_plot
     use math_const,  only: pi => math_pi, degree => math_degree
     use hamiltonian, only: coord_r, coord_theta
     use nr, only: plgndr_s
-    integer (I1B), parameter :: file_dcs = 101,           file_tcs = 102 
+    integer (I1), parameter :: file_dcs = 101,           file_tcs = 102 
     character(30), parameter :: form_dcs = '(30ES25.10)', form_tcs = '(30ES25.10)'
     character(30), parameter :: form_out = '(1A15, 5X, 1ES25.10)'
-    real    (RDP), parameter :: radian_to_degree = 1.d0/degree 
-    real    (RDP) :: k
-    complex (CDP) :: tmp1 
-    real    (RSP) :: tmp2 
-    complex (CQP) :: sum
-    integer (I4B) :: i, j 
+    real     (DP), parameter :: radian_to_degree = 1.d0/degree 
+    real     (DP) :: k
+    complex  (DP) :: tmp1 
+    real     (SP) :: tmp2 
+    complex  (QP) :: sum
+    integer  (I4) :: i, j 
 
     allocate(outer_f(0:L))
     call mat_f 
 
-    open(file_tcs, file = "inout/total_cs.d")
+    open(file_tcs, file = "output/total_cs.d")
     sum = 0.d0 
     k   = (2.d0*Mass*Kinet)**0.50
     do i = 0, L 
@@ -82,10 +82,10 @@ subroutine PROC_CS_plot
         write(file_tcs, form_tcs) dble(i), aimag(tmp1)
     end do 
     tmp1 = sum 
-    write(*, form_out) "total sigma: ", aimag(tmp1)
+    write(file_log, form_out) "total sigma: ", aimag(tmp1)
     close(file_tcs)
 
-    open(file_dcs, file = "inout/diff_cs.d")
+    open(file_dcs, file = "output/diff_cs.d")
     do j = 0, ptheta 
         sum = 0.d0 
         do i = 0, L 
@@ -109,13 +109,13 @@ subroutine PROC_outer_plot
     use math_const,  only: pi => math_pi
     use hamiltonian, only: coord_r, coord_theta
     use nr, only: plgndr_s
-    integer (I1B), parameter :: file_psi1 = 101, file_psi2 = 102
+    integer  (I1), parameter :: file_psi1 = 101, file_psi2 = 102
     character(30), parameter :: form_psi  = '(30ES25.10)'
-    real    (RSP) :: tmp 
-    complex (CQP) :: sum 
-    integer (I4B) :: i, j, k 
+    real     (SP) :: tmp 
+    complex  (QP) :: sum 
+    integer  (I4) :: i, j, k 
 
-    open(file_psi1, file = "inout/outer_u0.d")
+    open(file_psi1, file = "output/outer_u0.d")
     sum = 0.d0 
     do i = N +1, 2*N
         sum = outer_u(0, coord_r(i))
@@ -123,7 +123,7 @@ subroutine PROC_outer_plot
     end do 
     close(file_psi1)
 
-    open(file_psi2, file = "inout/outer_psi.d")
+    open(file_psi2, file = "output/outer_psi.d")
     do i = N +1, 2*N, N/pr 
         do j = 0, ptheta
             sum = 0.d0 
