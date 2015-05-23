@@ -9,7 +9,7 @@ module global
     real    (dp), save, allocatable :: H(:, :), E(:), R(:), K(:)
     complex (dp), save, allocatable :: S(:), A(:)
     character(1), save :: &
-        op_ev, op_degree, & 
+        op_ev, op_degree, op_aa, & 
         op_poten, op_basis, op_dcs, op_inner, op_outer, &
         op_tcs, op_phase, op_lt
 end module

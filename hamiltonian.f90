@@ -156,7 +156,7 @@ subroutine PROC_input
     character(60), parameter :: &
         form_cal   = '(4/, 1(45X, 1F15.8, /), 5(45X, 1I15, /), /)'
     character(90), parameter :: &
-        form_opt   = '(6/, 2(45X, 6X, 1A1, /), /, 5(45X, 6X, 1A1, /), 3/, 3(45X, 6X, 1A1, /))'
+        form_opt   = '(6/, 3(45X, 6X, 1A1, /), /, 5(45X, 6X, 1A1, /), 3/, 3(45X, 6X, 1A1, /))'
     real     (dp), parameter :: eV_to_au = other_e_ev/au_hartree
     real     (dp) :: tmp1, tmp2 
 
@@ -198,7 +198,10 @@ subroutine PROC_input
         stop "SUBROUTINE PROC_input: Check potential type."
     end if 
     read (file_input, form_cal) ra, N, M, L, pr, ptheta
-    read (file_input, form_opt) op_ev, op_degree, op_poten, op_basis, op_dcs, op_inner, op_outer, op_tcs, op_phase, op_lt 
+    read (file_input, form_opt) & 
+        op_ev, op_degree, op_aa, &
+        op_poten, op_basis, op_dcs, op_inner, op_outer, &
+        op_tcs, op_phase, op_lt 
     close(file_input) 
     open (file_log, file = "output/log.d")
     
@@ -316,6 +319,7 @@ subroutine PROC_inform
     write(file_log, *) " DEFAULT                                               au        "
     if(op_ev     == "Y") write(file_log, *) " ENERGY                                                eV        "
     if(op_degree == "Y") write(file_log, *) " ANGULAR                                           degree        "
+    if(op_aa     == "Y") write(file_log, *) " CROSS SECTION                                        A^2        "
     write(file_log, *) " - "
     write(file_log, *) " - "
 
