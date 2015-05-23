@@ -1,8 +1,9 @@
 module outer
     use kind_type
     use global 
+    use nr, only: plgndr_s
     implicit none
-    complex(CDP), save, allocatable, private, protected :: f(:)
+    complex(CDP), save, allocatable, private, protected :: outer_f(:)
 contains 
     
 
@@ -13,21 +14,20 @@ subroutine mat_f
 
     k = (2.d0*Mass*Kinet)**0.50
     do j = 0, L 
-        f(j) = 1.d0/(2.d0*i*k)*(2.d0*dble(j) +1.d0)*(S(j) -1.d0)
+        outer_f(j) = (2.d0*dble(j) +1.d0)/(2.d0*i*k)*(S(j) -1.d0)
     end do 
 end subroutine mat_f 
 
 
 function outer_u(l, r)
-    use math_const, only: pi => math_pi, i => math_i
     integer(I4B), intent(in) :: l 
     real   (RDP), intent(in) :: r 
-    real   (RDP) :: k, sckr 
+    real   (RSP) :: kr
     complex(CDP) :: outer_u
 
-    k       = (2.d0*Mass*Kinet)**0.5d0
-    sckr    = k*r -dble(l)*pi/2.d0
-    outer_u = (exp(-i*sckr) -S(l)*exp(i*sckr))/k 
+    kr      = (2.d0*Mass*Kinet)**0.5d0*r
+!     outer_u = A(l)*(bessel_j(l, kr) -K(l)*bessel_y(l, kr))*r 
+    outer_u = A(l)*(bessel_j(l, kr) -K(l)*bessel_y(l, kr))
 end function outer_u
 
 
@@ -51,34 +51,36 @@ subroutine PROC_CS_plot
     character(30), parameter :: form_dcs = '(30ES25.10)'
     character(30), parameter :: form_out = '(1A15, 5X, 1ES25.10)'
     real    (RDP), parameter :: radian_to_degree = 1.d0/degree 
-    complex (CQP) :: tmp1, tmp2  
+    real    (RSP) :: tmp 
+    complex (CQP) :: sum1, sum2  
     real    (RDP) :: k 
     integer (I4B) :: i, j 
 
     k = (2.d0*Mass*Kinet)**0.50
-    allocate(f(0:L))
+    allocate(outer_f(0:L))
     
     call mat_f 
 
-    tmp1 = 0.d0 
+    sum1 = 0.d0 
     do i = 0, L 
-        tmp1 = tmp1 +f(i)
-!         write(*, *) tmp1 
+        sum1 = sum1 +outer_f(i)
+!         write(*, *) sum1 
     end do 
-    tmp1 = 4.d0*pi/k*tmp1
-    write(*, form_out) "total sigma: ", dble(aimag(tmp1))
+    sum1 = 4.d0*pi/k*sum1
+    write(*, form_out) "total sigma: ", dble(aimag(sum1))
 
     open(file_dcs, file = "inout/diff_cs.d")
-    tmp2 = 0.d0 
     do j = 0, ptheta 
+        sum2 = 0.d0 
         do i = 0, L 
-            tmp2 = tmp2 +f(i)*plgndr_s(i, 0, cos(coord_theta(j)))
+            tmp = cos(coord_theta(j))
+            sum2 = sum2 +outer_f(i)*plgndr_s(i, 0, tmp)
         end do 
-    write(file_dcs, form_dcs) coord_theta(j)*radian_to_degree, abs(tmp2)**2.d0
-!     write(file_dcs, form_dcs) coord_theta(j)*radian_to_degree, abs(tmp2/tmp1)**2.d0
+        write(file_dcs, form_dcs) coord_theta(j)*radian_to_degree, abs(sum2)**2.d0
+!         write(file_dcs, form_dcs) coord_theta(j)*radian_to_degree, abs(sum2/sum1)**2.d0
     end do 
     close(file_dcs)
-    deallocate(f)
+    deallocate(outer_f)
 end subroutine PROC_CS_plot
 
 
@@ -88,14 +90,15 @@ subroutine PROC_outer_plot
     integer (I1B), parameter :: file_psi1 = 101, file_psi2 = 102, file_psi3 = 103
     character(30), parameter :: form_psi  = '(30ES25.10)'
     real    (RDP), parameter :: radian_to_degree = 1.d0/degree
-    complex (CQP) :: tmp 
+    real    (RSP) :: tmp 
+    complex (CQP) :: sum 
     integer (I4B) :: i, j, k 
 
     open(file_psi1, file = "inout/outer_u0.d")
-    tmp = 0.d0 
+    sum = 0.d0 
     do i = N +1, 2*N
-        tmp = outer_u(0, coord_r(i))
-        write(file_psi1, form_psi) coord_r(i), dble(abs(tmp)**2.d0)
+        sum = outer_u(0, coord_r(i))
+        write(file_psi1, form_psi) coord_r(i), dble(abs(sum)**2.d0)
     end do 
     close(file_psi1)
 
@@ -103,16 +106,17 @@ subroutine PROC_outer_plot
     open(file_psi3, file = "inout/outer_psi-4pir.d")
     do i = N +1, 2*N, N/pr 
         do j = 0, ptheta
-            tmp = 0.d0 
+            sum = 0.d0 
             do k = 0, L 
-                tmp = tmp +outer_u(k, coord_r(i))/coord_r(i)*plgndr_s(i, 0, cos(coord_theta(j)))
+                tmp = cos(coord_theta(j))
+                sum = sum +outer_u(k, coord_r(i))/coord_r(i)*plgndr_s(i, 0, tmp)
             end do 
-!             write(file_psi2, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(tmp))**2.d0 
-            write(file_psi2, form_psi) coord_r(i), coord_theta(j), dble(abs(tmp))**2.d0 
-            if(j == 0) write(file_psi2, form_psi) coord_r(i), dble(abs(tmp)**2.d0)
-            tmp = tmp*4.d0*pi*coord_r(i)
-!             write(file_psi3, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(tmp))**2.d0
-            write(file_psi3, form_psi) coord_r(i), coord_theta(j), dble(abs(tmp))**2.d0
+!             write(file_psi2, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(sum))**2.d0 
+            write(file_psi2, form_psi) coord_r(i), coord_theta(j), dble(abs(sum))**2.d0 
+            if(j == 0) write(file_psi2, form_psi) coord_r(i), dble(abs(sum)**2.d0)
+            sum = sum*4.d0*pi*coord_r(i)
+!             write(file_psi3, form_psi) coord_r(i), coord_theta(j)*radian_to_degree, dble(abs(sum))**2.d0
+            write(file_psi3, form_psi) coord_r(i), coord_theta(j), dble(abs(sum))**2.d0
         end do 
         write(file_psi2, form_psi) 
         write(file_psi3, form_psi) 

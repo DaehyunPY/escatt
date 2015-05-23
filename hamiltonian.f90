@@ -108,7 +108,7 @@ subroutine PROC_input
     pD     = pH/Z**0.4d0 
 
     allocate(H(1:N, 1:N), E(1:N))
-    allocate(R(0:L), K(0:L), S(0:L))
+    allocate(R(0:L), K(0:L), S(0:L), A(0:L))
     allocate(inner_u(0:L, 1:N)) 
     H(:, :)       = 0.d0
     E(:)          = 0.d0
@@ -135,7 +135,7 @@ end subroutine PROC_Poten_plot
 
 subroutine PROC_out 
     deallocate(H, E)
-    deallocate(R, K, S)
+    deallocate(R, K, S, A)
     deallocate(inner_u)
 end subroutine PROC_out 
 end module hamiltonian 

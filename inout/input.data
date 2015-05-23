@@ -31,7 +31,7 @@ CALCULATION
  --------------------------------------  -----.--
  BOUNDARY SIZE                      [1]     20.0
  GRID NUMBER OF r COORDINATES       [1]   1000
- LIMITATION OF QUANTUM NUMBER L     [1]     10 
+ LIMITATION OF QUANTUM NUMBER L     [1]     20 
  -
  -
 ==================================================

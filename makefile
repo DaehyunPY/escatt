@@ -6,7 +6,7 @@ TARGET  = a.out
 # COMMON_MOD1 = file.f
 # COMMON_MOD2 = file.for 
 # COMMON_MOD3 = file.f90
-COMMON_MOD3 += nrtype-f2008.f90 nrutil-f2008.f90 plgndr-dp.f90 
+COMMON_MOD3 += nrtype.f90 nrutil.f90 nr.f90 plgndr.f90 bessj0.f90 bessj1.f90 bessj.f90 bessy0.f90 bessy1.f90 bessy.f90 
 COMMON_MOD3 += const.f90 
 COMMON_MOD3 += global.f90 hamiltonian.f90 basis.f90 boundary.f90 inner.f90 outer.f90 main.f90 
 COMMON_MOD  = $(COMMON_MOD1)       $(COMMON_MOD2)         $(COMMON_MOD3)
@@ -75,8 +75,6 @@ ${TARGET}: ${OBJECTS}; ${FORTRAN} -o $@ ${OBJECTS} ${LDFLAGS}
 ##################################################
 
 # ${OBJECTS}: ${COMMON_MOD}
-nrutil-f2008.o: nrtype-f2008.o 
-plgndr-dp.o: nrtype-f2008.o nrutil-f2008.o 
 main.o: const.o global.o hamiltonian.o basis.o boundary.o inner.o outer.o
 outer.o: const.o global.o hamiltonian.o 
 inner.o: const.o global.o hamiltonian.o 

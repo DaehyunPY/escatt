@@ -33,7 +33,7 @@ subroutine correct(num, ty)
     character(30), parameter :: form_out = '(1A15, 1I15, 1ES15.3)'
     integer(I4B), intent(in)  :: num 
     integer(I1B), intent(out) :: ty   
-    real   (RDP) :: tmp, sign, c1, c2     
+    real   (RDP) :: tmp, sign, c1, c2
     real   (RQP) :: sum 
     integer(I4B) :: i, j
 
@@ -110,14 +110,15 @@ subroutine PROC_H(l)
             else 
                 v = 2*(2*N -j +1)
             end if 
-            tmp_H(u, v) = tmp_H(u, v) -1.d0/(2.d0*Mass)*nabla_x(i, j)
+            tmp         = -1.d0/(2.d0*Mass)*nabla_x(i, j)
+            tmp_H(u, v) = tmp_H(u, v) +tmp
         enddo
     enddo
     do i = 1, N 
         u = 2*i -1 
         v = 2*i 
-        tmp = 1.d0/(2.d0*Mass)*dble(l)*(dble(l) +1.d0)/coord_r(i)**2.d0 &
-                +Poten(coord_r(i))
+        tmp = 1.d0/(2.d0*Mass)*dble(l)*(dble(l) +1.d0)/coord_r(i)**2.d0 & ! azimuthal quantum term
+                +Poten(coord_r(i))                                        ! potential term
         tmp_H(u, u) = tmp_H(u, u) +tmp 
         tmp_H(v, v) = tmp_H(v, v) +tmp 
     enddo

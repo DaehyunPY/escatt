@@ -2,10 +2,10 @@
     USE nrtype; USE nrutil, ONLY : arth,assert
     IMPLICIT NONE
     INTEGER(I4B), INTENT(IN) :: l,m
-    REAL(DP), INTENT(IN) :: x
-    REAL(DP) :: plgndr_s
+    REAL(SP), INTENT(IN) :: x
+    REAL(SP) :: plgndr_s
     INTEGER(I4B) :: ll
-    REAL(DP) :: pll,pmm,pmmp1,somx2
+    REAL(SP) :: pll,pmm,pmmp1,somx2
     call assert(m >= 0, m <= l, abs(x) <= 1.0, 'plgndr_s args')
     pmm=1.0
     if (m > 0) then
@@ -35,10 +35,10 @@
     USE nrtype; USE nrutil, ONLY : arth,assert
     IMPLICIT NONE
     INTEGER(I4B), INTENT(IN) :: l,m
-    REAL(DP), DIMENSION(:), INTENT(IN) :: x
-    REAL(DP), DIMENSION(size(x)) :: plgndr_v
+    REAL(SP), DIMENSION(:), INTENT(IN) :: x
+    REAL(SP), DIMENSION(size(x)) :: plgndr_v
     INTEGER(I4B) :: ll
-    REAL(DP), DIMENSION(size(x)) :: pll,pmm,pmmp1,somx2
+    REAL(SP), DIMENSION(size(x)) :: pll,pmm,pmmp1,somx2
     call assert(m >= 0, m <= l, all(abs(x) <= 1.0), 'plgndr_v args')
     pmm=1.0
     if (m > 0) then
