@@ -2,8 +2,7 @@ module hamiltonian
     use kind_type
     use global 
     implicit none
-    real(dp), save, allocatable, protected :: coord_rho(:), coord_weight(:) ! coordination 
-    real(dp), save, protected :: dr_p_drho
+    real(dp), save, allocatable, protected :: coord_rho(:) ! coordination 
     real(dp), save, protected :: dtheta, dE 
     real(dp), save, private, protected :: & ! potential 
         Z, alphab, cutoff, &   ! general 
@@ -22,7 +21,7 @@ contains
 function coord_r(i) 
     integer(i4), intent(in) :: i
     real   (dp) :: coord_r
-    coord_r = dr_p_drho*(1_dp -abs(coord_rho(i)))
+    coord_r = ra*(-abs(coord_rho(i)) +1_dp)
 end function coord_r
 ! theta --------------------------------------------
 function coord_theta(i)
@@ -42,21 +41,23 @@ end function coord_E
 ! OPERATOR 
 ! ==================================================
 ! nabla --------------------------------------------
-function nabla_rho(j, k)
+function nabla_rho(int_j, int_k)
     use math_const, only: pi => math_pi 
-    integer(i4), intent(in) :: j, k
-    real   (dp) :: nabla_rho, qj, qk, n 
-    qj = coord_rho(j)
-    qk = coord_rho(k)
-    n  = dble(size(coord_rho(:)))
-    if(j /= k) then 
+    integer(i4), intent(in) :: int_j, int_k
+    real   (dp) :: nabla_rho, j, k, qj, qk, M 
+    j  = dble(int_j)
+    k  = dble(int_k)
+    qj = coord_rho(int_j)
+    qk = coord_rho(int_k)
+    M  = dble(2*N -1)
+    if(int_j /= int_k) then 
         nabla_rho = &
-            (2_dp*qj/((qj -qk)*(1_dp -qj**2_dp)) -2_dp/(qj -qk)**2_dp) &
+            (2_dp*qj/(qj -qk)/(1_dp -qj**2_dp) -2_dp/(qj -qk)**2_dp) &
             *((1_dp -qk**2_dp)/(1_dp -qj**2_dp))**0.5_dp 
-    else if(j == k) then 
+    else if(int_j == int_k) then 
         nabla_rho = & 
-            (-(n -1_dp)*(n +2_dp) +(n**2_dp +n +6_dp)*qj**2_dp) &
-            /(3_dp*(1_dp -qj**2_dp)**2_dp)
+            (-(M -1_dp)*(M +2_dp) +(M**2_dp +M +6_dp)*qj**2_dp) &
+            /3_dp/(1_dp -qj**2_dp)**2_dp  
     end if
 end function nabla_rho
 ! potential ----------------------------------------
@@ -99,22 +100,29 @@ end function angular_r
 ! CALCULATION 
 ! ==================================================
 ! diagonalization ----------------------------------
-subroutine diag(AB, W, Z)
-    real    (dp), intent(in)  :: AB(1:, 1:)
-    real    (dp), intent(out) :: W(1:), Z(1:, 1:)
-    character(1), parameter   :: jobz = 'Vectors', uplo = 'Upper'
-    integer (i8), parameter   :: kd   = 1 
-    integer (i8) :: n, ldab, ldz 
+subroutine diag(jobz, uplo, EF, EV)
+    real    (dp), intent(inout) :: EF(1:, 1:)
+    real    (dp), intent(out)   :: EV(1:)
+    character(1), intent(in)    :: jobz, uplo 
+        ! jobz: No vectors, Vectors   uplo: Upper, Lower 
+    integer (i8) :: n, lda, lwork
     integer (i1) :: info 
     real    (dp), allocatable :: work(:)
 
-    n    = size(AB(1, :))
-    ldab = size(AB(:, 1))
-    ldz  = size(Z (:, 1)) 
-    allocate(work(1:3*n -2))
-    info = 0
-    call DSBEV(jobz, uplo, n, kd, AB, ldab, W, Z, ldz, work, info)
-    if(info /= 0) stop "SUBROUTINE diag: Error. (1)"
+    n     = size(EF(:, 1))
+    lda   = size(EF(1, :))
+    lwork = 3*n -1
+    allocate(work(1:lwork))
+    info  = 0
+
+    lwork = -1
+    call DSYEV(jobz, uplo, n, EF, lda, EV, work, lwork, info)
+    lwork = int(work(1))
+    deallocate(work)
+    allocate(work(1:lwork))
+
+    call DSYEV(jobz, uplo, n, EF, lda, EV, work, lwork, info)
+    if(info /= 0) stop "SUBROUTINE diag: Error."
     deallocate(work)
 end subroutine diag
 
@@ -189,10 +197,15 @@ subroutine PROC_input
     dtheta = pi/dble(ptheta)
     dE     = Scatt/dble(M) 
 
-    allocate(coord_rho(1:2*N), coord_weight(1:2*N))
-    allocate(H(1:N, 1:N), E(1:N))
-!     allocate(H(1:2*N -1, 1:2*N -1), E(1:2*N -1)) ! for test 
+    allocate(coord_rho(1:2*N -1))
+!     allocate(H(1:N, 1:N), E(1:N))
+    allocate(H(1:2*N -1, 1:2*N -1), E(1:2*N -1)) ! for test 
     allocate(R(0:L), K(0:L), S(0:L), A(0:L))
+    H(:, :)       = 0_dp
+    E(:)          = 0_dp
+    R(:)          = 0_dp
+    K(:)          = 0_dp
+    S(:)          = 0_dp
 
     if(op_tcs == "Y" .or. op_phase == "Y" .or. op_lt == "Y") then 
         op_basis = "N"
@@ -309,24 +322,18 @@ end subroutine PROC_inform
 ! end information ----------------------------------
 ! coordination -------------------------------------
 subroutine PORC_coord
-    real   (dp), allocatable :: X(:, :), U(:, :)
-    real   (dp) :: tmp, sign 
-    integer(i4) :: n, i, j
+    real   (dp), allocatable :: X(:, :)
+    real   (dp) :: tmp 
+    integer(i4) :: i
     
-    n = size(coord_rho(:))
-    allocate(X(1:2, 1:n), U(1:n, 1:n))
+    allocate(X(1:2*N -1, 1:2*N -1))
     X = 0_dp 
-    do i = 1, n
-        do j = i, min(n, i +1)
-            tmp = dble(i)/((2_dp*dble(i) -1_dp)*(2_dp*dble(i) +1_dp))**0.5_dp
-            if(j == i) tmp = 0_dp 
-            X(2 +i -j, j) = tmp 
-        end do 
+    do i = 1, 2*N -2
+        tmp = dble(i)
+        X(i, i +1) = tmp/((2_dp*tmp -1_dp)*(2_dp*tmp +1_dp))**0.5_dp 
     end do 
-    call diag(X, coord_rho, U)
-    coord_weight(:) = 2_dp*U(1, :)**2_dp
-    dr_p_drho       = ra
-    deallocate(X, U)
+    call diag('No vectors', 'Upper', X, coord_rho)
+    deallocate(X)
 end subroutine PORC_coord
 ! end coordination ---------------------------------
 ! potential plot -----------------------------------
@@ -344,7 +351,7 @@ end subroutine PROC_Poten_plot
 ! end potential plot -------------------------------
 ! out ----------------------------------------------
 subroutine PROC_out 
-    deallocate(coord_rho, coord_weight)
+    deallocate(coord_rho)
     deallocate(H, E)
     deallocate(R, K, S, A)
     close(file_log)

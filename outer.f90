@@ -3,6 +3,7 @@ module outer
     use global 
     implicit none
     complex(dp), save, allocatable, private, protected :: outer_f(:)
+    real   (dp), save, allocatable, private, protected :: CS(:) 
 contains 
     
 
@@ -11,7 +12,7 @@ subroutine mat_f
     real   (dp) :: k, tmp1, tmp2 
     integer(i4) :: j 
 
-    k = (2.d0*Mass*Kinet)**0.50
+    k = (2.d0*Mass*Scatt)**0.50
     do j = 0, L 
         tmp1 = aimag(S(j))/2.d0 
         tmp2 = (1.d0 -real(S(j)))/2.d0 
@@ -28,7 +29,7 @@ function outer_u(l, r)
     real   (dp) :: kr, sb_j, sb_y
     complex(dp) :: outer_u
 
-    kr = (2.d0*Mass*Kinet)**0.5d0*r
+    kr = (2.d0*Mass*Scatt)**0.5d0*r
     sb_j = gsl_sf_bessel_jsl(l, kr)
     sb_y = gsl_sf_bessel_ysl(l, kr)
 
@@ -47,33 +48,7 @@ end function outer_u
 ! ==================================================
 ! PROCESS
 ! ==================================================
-
-
-subroutine PROC_CS_achive(j)
-    use math_const, only: pi => math_pi
-    character(30), parameter  :: form_out = '(1A15, 5X, 1ES25.10)'
-    integer  (i4), intent(in) :: j 
-    real     (dp) :: k 
-    complex  (qp) :: sum 
-    complex  (dp) :: tmp 
-    integer  (i4) :: i
-
-    allocate(outer_f(0:L))
-    call mat_f 
-
-    sum = 0.d0 
-    k   = (2.d0*Mass*Kinet)**0.50
-    do i = 0, L 
-        tmp = 4.d0*pi/k*outer_f(i)
-        sum = sum +tmp 
-    end do 
-    tmp   = sum 
-    CS(j) = aimag(tmp)
-    write(file_log, form_out) "total sigma: ", aimag(tmp)
-    deallocate(outer_f)
-end subroutine PROC_CS_achive
-
-
+! cs plot ------------------------------------------
 subroutine PROC_CS_plot 
     use math_const,  only: pi => math_pi, degree => math_degree
     use hamiltonian, only: coord_r, coord_theta
@@ -95,7 +70,7 @@ subroutine PROC_CS_plot
 
     open(file_tcs, file = "output/total_cs.d")
     sum = 0.d0 
-    k   = (2.d0*Mass*Kinet)**0.50
+    k   = (2.d0*Mass*Scatt)**0.50
     do i = 0, L 
         tmp1 = 4.d0*pi/k*outer_f(i)
         sum  = sum +tmp1 
@@ -121,46 +96,75 @@ subroutine PROC_CS_plot
     close(file_dcs)
     deallocate(outer_f)
 end subroutine PROC_CS_plot
-
-
+! end cs plot --------------------------------------
+! outer plot ---------------------------------------
 subroutine PROC_outer_plot 
     use math_const,  only: pi => math_pi, degree => math_degree
-    use hamiltonian, only: coord_r, coord_theta
+    use hamiltonian, only: coord_theta
     use gsl_special, only: gsl_sf_legendre_Pl
     integer  (i1), parameter :: file_psi1 = 101, file_psi2 = 102
     character(30), parameter :: form_psi  = '(30ES25.10)'
     real     (dp), parameter :: radian_to_degree = 1.d0/degree 
-    real     (dp) :: unit_theta, tmp 
+    real     (dp) :: unit_theta, tmp, r, dr 
     complex  (qp) :: sum 
     integer  (i4) :: i, j, k 
 
     unit_theta = 1_dp 
     if(op_degree == "Y") unit_theta = radian_to_degree
+    dr = ra/dble(N)
 
     open(file_psi1, file = "output/outer_u_0.d")
     sum = 0.d0 
-    do i = N +1, 2*N
-        sum = outer_u(0, coord_r(i))
-        write(file_psi1, form_psi) coord_r(i), dble(abs(sum)**2.d0)
+    do i = 1, N, N/pr 
+        r = ra +dr*dble(i)
+        sum = outer_u(0, r)
+        write(file_psi1, form_psi) r, dble(abs(sum)**2.d0)
     end do 
     close(file_psi1)
 
     open(file_psi2, file = "output/outer_psi.d")
-    do i = N +1, 2*N, N/pr 
+    do i = 1, N, N/pr 
+        r = ra +dr*dble(i)
         do j = 0, ptheta
             sum = 0.d0 
             do k = 0, L 
                 tmp = cos(coord_theta(j))
-                sum = sum +outer_u(k, coord_r(i))/coord_r(i)*gsl_sf_legendre_Pl(k, tmp)
+                sum = sum +outer_u(k, r)/r*gsl_sf_legendre_Pl(k, tmp)
             end do 
-            write(file_psi2, form_psi) coord_r(i), coord_theta(j)*unit_theta, dble(abs(sum))**2.d0 
+            write(file_psi2, form_psi) r, coord_theta(j)*unit_theta, dble(abs(sum))**2.d0 
         end do 
         write(file_psi2, form_psi) 
     end do 
     close(file_psi2)
 end subroutine PROC_outer_plot
+! end outer plot -----------------------------------
+! cs achive ----------------------------------------
+subroutine PROC_CS_achive(j)
+    use math_const, only: pi => math_pi
+    character(30), parameter  :: form_out = '(1A15, 5X, 1ES25.10)'
+    integer  (i4), intent(in) :: j 
+    real     (dp) :: k 
+    complex  (qp) :: sum 
+    complex  (dp) :: tmp 
+    integer  (i4) :: i
 
+    if(allocated(CS) == .false.) allocate(CS(1:M))
+    allocate(outer_f(0:L))
+    call mat_f 
 
+    sum = 0.d0 
+    k   = (2.d0*Mass*Scatt)**0.50
+    do i = 0, L 
+        tmp = 4.d0*pi/k*outer_f(i)
+        sum = sum +tmp 
+    end do 
+    tmp   = sum 
+    CS(j) = aimag(tmp)
+    write(file_log, form_out) "total sigma: ", aimag(tmp)
+    deallocate(outer_f)
+end subroutine PROC_CS_achive
+! end cs achive ------------------------------------
+! e vs cs plot -------------------------------------
 subroutine PROC_E_vs_CS_plot
     use unit_const,  only: other_e_eV, au_hartree
     use hamiltonian, only: coord_E 
@@ -177,6 +181,8 @@ subroutine PROC_E_vs_CS_plot
     do j = 1, M 
         write(file_cs, form_cs) coord_E(j)*unit_e, CS(j) 
     end do 
+    if(allocated(CS) == .true.) deallocate(CS)
     close(file_cs)
 end subroutine PROC_E_vs_CS_plot
+! end e vs cs plot ---------------------------------
 end module outer

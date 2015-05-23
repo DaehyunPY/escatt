@@ -3,7 +3,7 @@ PARTICLE
 ============================================================
  -------------------------------------------  ------.------
  MASS                                   [au]       1.0
- KINETIC ENERGY                      [au/eV]       3.0 
+ SCATTERING ENERGY                   [au/eV]       3.0 
  -
  -
 ============================================================
@@ -39,7 +39,7 @@ CALCULATION
 ============================================================
  -------------------------------------------  ------.------
  BOUNDARY SIZE                          [au]      20.0
- GRID NUMBER OF r COORDINATES            [1]     100 
+ GRID NUMBER OF r COORDINATES            [1]      50 
  GRID NUMBER OF Energy COORDINATES       [1]    1000
  MAXIUM OF QUANTUM NUMBER L              [1]       0
  3D PLOT NUMBER OF r COORDINATES         [1]     200 
@@ -57,7 +57,7 @@ OPTION
  [OUTPUT FILE]
     POTENTIAL FUNCTION                 [Y/N]       NO 
     BASIS FUNCTION                     [Y/N]       YES  
-    CROSS SECTION FUNCTION             [Y/N]       YES 
+    CROSS SECTION FUNCTION             [Y/N]       NO  
     INNER REGION WAVE FUNCTION         [Y/N]       NO 
     OUTER REGION WAVE FUNCTION         [Y/N]       NO
  [SPECIAL CALCULATION]

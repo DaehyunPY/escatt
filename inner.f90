@@ -3,6 +3,7 @@ module inner
     use global 
     implicit none
     complex(dp), save, allocatable, private, protected :: inner_a(:)
+    complex(dp), save, allocatable, private, protected :: inner_u(:, :)
 contains 
     
 
@@ -14,13 +15,13 @@ subroutine inner_coeff(l)
     complex(dp) :: tmp1 
     integer(i4) :: j
 
-    ka = (2.d0*Mass*Kinet)**0.5d0*ra
+    ka = (2.d0*Mass*Scatt)**0.5d0*ra
     sb_j = gsl_sf_bessel_jsl(l, ka)
     sb_y = gsl_sf_bessel_ysl(l, ka)
     
     tmp1 = A(l)*(sb_j -K(l)*sb_y)
     do j = 1, N 
-        tmp2       = H(j, N)/(2.d0*Mass*(E(j) -Kinet))
+        tmp2       = H(j, N)/(2.d0*Mass*(E(j) -Scatt))
         inner_a(j) = tmp1*tmp2/R(l)
     end do     
 end subroutine inner_coeff
@@ -36,13 +37,13 @@ end subroutine inner_coeff
 ! ==================================================
 ! PROCESS
 ! ==================================================
-
-
+! inner achive -------------------------------------
 subroutine PROC_inner_achive(l)
     integer(i4), intent(in) :: l 
     complex(qp) :: sum 
     integer(i4) :: i, j
 
+    if(allocated(inner_u) == .false.) allocate(inner_u(0:L, 1:N))
     allocate(inner_a(1:N))
     call inner_coeff(l) 
     do i = 1, N 
@@ -54,9 +55,9 @@ subroutine PROC_inner_achive(l)
     end do 
     deallocate(inner_a)
 end subroutine PROC_inner_achive
-
-
-subroutine PROC_inner_plot ! It must be called after PROC_input, PROC_H, PROC_boundary
+! end inner achive ---------------------------------
+! inner plot ---------------------------------------
+subroutine PROC_inner_plot 
     use math_const,  only: pi => math_pi, degree => math_degree
     use hamiltonian, only: coord_r, coord_theta
     use gsl_special, only: gsl_sf_legendre_Pl
@@ -90,6 +91,8 @@ subroutine PROC_inner_plot ! It must be called after PROC_input, PROC_H, PROC_bo
         end do 
         write(file_psi2, form_psi) 
     end do 
+    if(allocated(inner_u) == .true.) deallocate(inner_u)
     close(file_psi2)
 end subroutine PROC_inner_plot
+! end inner plot -----------------------------------
 end module inner

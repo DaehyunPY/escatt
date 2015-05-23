@@ -2,7 +2,7 @@ program main
     use kind_type
     use global
     use hamiltonian, only: coord_E
-    use hamiltonian, only: PROC_input, PROC_inform, PROC_Poten_plot, PROC_out 
+    use hamiltonian, only: PROC_input, PROC_inform, PORC_coord, PROC_Poten_plot, PROC_out 
     use basis,       only: PROC_H, PROC_basis_plot
     use boundary,    only: PROC_boundary_mat
     use inner,       only: PROC_inner_achive, PROC_inner_plot
@@ -17,8 +17,9 @@ program main
     write(*, *) "Reading input file..."
     call PROC_input  
     write(file_log, *) "[PROCESS INPUT]"
-    write(file_log, *) 
+    write(file_log, *)
         call PROC_inform
+        call PORC_coord
         if(op_poten == "Y") then 
             call PROC_Poten_plot 
             write(file_log, *) "Potential function is ploted."
@@ -38,7 +39,7 @@ program main
     write(file_log, *) "[PROCESS CALCULATE]"
     write(file_log, *) 
     do j = 1, M 
-        Kinet = coord_E(j)
+        Scatt = coord_E(j)
         do i = 0, L 
             call cpu_time(t1)
                 write(file_log, *) "ROUND", i, coord_E(j)
