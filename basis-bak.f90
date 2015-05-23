@@ -19,9 +19,11 @@ function nabla_x(int_i, int_j)
         nabla_x = &
             pi**2.d0 /3.d0
     end if
-    nabla_x = nabla_x &
-        *(-1.d0)/dr**2.d0 &
-        *(-1.d0)**(i -j)
+    nabla_x = nabla_x/dr**2.d0
+    if(mod(int_i +int_j, 2) == 0) then 
+        nabla_x = -nabla_x
+    end if 
+!        *(-1.d0)**(i -j +1.d0)
 end function nabla_x
 
 
@@ -48,15 +50,18 @@ end subroutine diag
 
 
 subroutine test
-    real(16) :: sum 
+    real(16) :: sum, ssum 
     integer  :: i, j 
 
-    do j = 1, 2*N
+    ssum = 0.d0 
+    do j = 1, 2*N 
         sum = 0.d0 
         do i = 1, N 
             sum = sum +tmp_H(i, j)*tmp_H(i, j)
         end do 
-        write(*, *) j, dble(sum), tmp_E(j)
+        ssum = ssum +dble(sum)
+        write(*, *) j, dble(sum), ssum 
+        ssum = dble(sum)
 !         H(j, :) = H(j, :)/sum**0.5d0 
     end do  
 end subroutine test
@@ -96,31 +101,43 @@ subroutine PROC_H(l) ! It must be called after PROC_input
     integer, intent(in) :: l 
     character(30), parameter :: form_out = '(1X, 1A, 10F10.3)'
     real(8) :: sign, tmp 
-    integer :: i, j, num
+    integer :: i, j, u, v, num
 
     allocate(tmp_H(2*N, 2*N), tmp_E(2*N))
-    tmp_H(:, :) = 0.d0  
-    do j = 1, 2*N
-        do i = 1, 2*N
-            tmp_H(i, j) = tmp_H(i, j) -1.d0/(2.d0*Mass)*nabla_x(i, j)
+    tmp_H(:, :) = 0.d0 
+    do i = 1, 2*N 
+        do j = 1, 2*N 
+            if(i <= N) then 
+                u = 2*i -1 
+            else 
+                u = 2*(2*N -i +1)
+            end if 
+            if(j <= N) then 
+                v = 2*j -1 
+            else 
+                v = 2*(2*N -j +1)
+            end if 
+            tmp_H(u, v) = tmp_H(u, v) -1.d0/(2.d0*Mass)*nabla_x(i, j)
         enddo
     enddo
     do i = 1, N 
+        u = 2*i -1 
+        v = 2*i 
         tmp = 1.d0/(2.d0*Mass)*dble(l)*(dble(l) +1.d0)/cood_r(i)**2.d0 &
                 +Poten(cood_r(i))
-        tmp_H(i, i) = tmp_H(i, i) +tmp 
-        tmp_H(2*N +1 -i, 2*N +1 -i) = tmp_H(2*N +1 -i, 2*N +1 -i) +tmp 
+        tmp_H(u, u) = tmp_H(u, u) +tmp 
+        tmp_H(v, v) = tmp_H(v, v) +tmp 
     enddo
 
     call diag
 !     call test 
 
-    num     = 0
-    H(:, :) = 0.d0
-    E(:)    = 0.d0
+!     num     = 0
+!     H(:, :) = 0.d0
+!     E(:)    = 0.d0
     do j = 1, 2*N
 !         if(tmp_H(1, j)*tmp_H(2*N -1, j) > 0.d0) then  
-            num = num +1
+!             num = num +1
 !             if(num <= N) then 
 !                 E(num) = tmp_E(j)
                 sign   = 1.d0 
@@ -128,7 +145,7 @@ subroutine PROC_H(l) ! It must be called after PROC_input
                     sign = -1.d0 
                 end if 
                 do i = 1, N 
-                    tmp_H(i, j) = sign*(tmp_H(i, j) +tmp_H(2*N -i, j))*2.d0**(-0.5d0)
+                    tmp_H(i, j) = sign*(tmp_H(2*i -1, j) +tmp_H(2*i, j))*2.d0**(-0.5d0)
                 end do 
 !             end if 
 !         end if 
@@ -138,7 +155,7 @@ subroutine PROC_H(l) ! It must be called after PROC_input
     call test 
     deallocate(tmp_H, tmp_E)
 
-!     call stnad
+    call stnad
     write(*, form_out) "Energy: ", (E(i), i = 1, 10)
 end subroutine PROC_H
 
@@ -151,9 +168,9 @@ subroutine PROC_basis_plot ! It must be called after PROC_input, PROC_H
     open(file_psi, file = "inout/basis_psi.d")
     open(file_ene, file = "inout/basis_energy.d")
     write(file_psi, form_psi) 0.d0, 0.d0, 0.d0, 0.d0, 0.d0, 0.d0
-    do i = 1, N 
-        write(file_psi, form_psi) cood_r(i), (H(j, i), j = 1, 5)
-        write(file_ene, form_ene) i, E(i)
+    do i = 1, 2*N 
+        write(file_psi, form_psi) cood_r(i), (tmp_H(j, i), j = 1, 5)
+        write(file_ene, form_ene) i, tmp_E(i)
     end do 
     close(file_psi)
     close(file_ene)

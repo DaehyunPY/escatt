@@ -13,9 +13,9 @@ program main
 !     do i = 0, L 
         call PROC_H(i) 
 !         call PROC_basis_plot
-!         call PROC_boundary_mat(i) 
-!         call PROC_inner_plot(i)
-!         call PROC_CS(i) 
-!         call PROC_outer_plot(i) 
+        call PROC_boundary_mat(i) 
+        call PROC_inner_plot(i)
+        call PROC_CS(i) 
+        call PROC_outer_plot(i) 
 !     end do 
 end program main

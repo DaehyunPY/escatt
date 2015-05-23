@@ -1,7 +1,7 @@
 module global 
     implicit none
     real(8), parameter :: ra    = 20.d0
-    integer, parameter :: N     = 2000
+    integer, parameter :: N     = 1000
     integer, parameter :: L     = 0
     real(8), parameter :: dr    = ra/dble(N)
     real(8), parameter :: Mass  = 1.d0
