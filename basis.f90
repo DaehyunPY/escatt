@@ -44,7 +44,7 @@ subroutine correct(num, ty)
         sum = sum +tmp*tmp*dr 
     end do 
     if(sum < 1.d-20) ty = 0 
-    write(*, form_out) "correct: ", num, dble(sum) 
+!     write(*, form_out) "correct: ", num, dble(sum) 
 
     if(tmp_H(1, 2*num -1)*tmp_H(1, 2*num) > 0.d0) then 
         sign = 1.d0 

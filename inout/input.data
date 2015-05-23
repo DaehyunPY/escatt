@@ -3,7 +3,7 @@ PARTICLE
 ==================================================
  --------------------------------------  -----.--
  MASS                              [au]      1.0
- KINETIC ENERGY                    [au]      2.0 
+ KINETIC ENERGY                    [eV]      2.0 
  -
  -
 ==================================================
@@ -30,15 +30,15 @@ CALCULATION
 ==================================================
  --------------------------------------  -----.--
  BOUNDARY SIZE                      [1]     20.0
- GRID NUMBER OF r COORDINATES       [1]   1000
- LIMITATION OF QUANTUM NUMBER L     [1]     20 
+ GRID NUMBER OF r COORDINATES       [1]   2000
+ LIMITATION OF QUANTUM NUMBER L     [1]     25 
  -
  -
 ==================================================
 PLOT
 ==================================================
  --------------------------------------  -----.--
- PLOT NUMBER OF r COORDINATES       [1]    200
- PLOT NUMBER OF theta COORDINATES   [1]    200
+ PLOT NUMBER OF r COORDINATES       [1]    100
+ PLOT NUMBER OF theta COORDINATES   [1]    100
  -
  -

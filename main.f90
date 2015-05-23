@@ -13,7 +13,7 @@ program main
     write(*, *) "INPUT"
     call cpu_time(t1)
         call PROC_input  
-        call PROC_Poten_plot 
+!         call PROC_Poten_plot 
     call cpu_time(t2)
     write(*, *) "INPUT RUNNING TIME", t2 -t1 
     write(*, *) 
@@ -23,7 +23,7 @@ program main
         write(*, *) "ROUND", i 
         call cpu_time(t1)
             call PROC_H(i) 
-    !         call PROC_basis_plot
+!             if(i == L) call PROC_basis_plot
             call PROC_boundary_mat(i) 
             call PROC_inner_achive(i)
         call cpu_time(t2) 
@@ -34,8 +34,8 @@ program main
     write(*, *) " PLOT"
     call cpu_time(t1)
         call PROC_CS_plot 
-        call PROC_inner_plot
-        call PROC_outer_plot 
+!         call PROC_inner_plot
+!         call PROC_outer_plot 
     call cpu_time(t2)
     write(*, *) " PLOT RUNNING TIME", t2 -t1 
     write(*, *)

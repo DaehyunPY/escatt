@@ -9,9 +9,9 @@ module kind_type
         RSP = REAL32, &
         RDP = REAL64, &
         RQP = REAL128, &
-        CSP = KIND((REAL32, REAL32)), &
-        CDP = KIND((REAL64, REAL64)), &
-        CQP = KIND((REAL128, REAL128))
+        CSP = REAL32, &
+        CDP = REAL64, &
+        CQP = REAL128 
 end module ! kind_type
 
 

@@ -13,35 +13,40 @@ subroutine mat_R(l)
 
     sum = 0.d0 
     do i = 1, N 
-        sum = sum +H(i, N)**2.d0/(2.d0*Mass*(E(i) -Kinet))/ra 
+        sum = sum +H(i, N)**2.d0/(2.d0*Mass*(E(i) -Kinet)) 
     end do 
-    R(l) = sum
+    R(l) = sum/ra 
     write(*, form_out) "R: ", l, R(l)
 end subroutine mat_R
 
 
 ! subroutine mat_K(l)
-!     use math_const, only: pi => math_pi 
 !     character(30), parameter  :: form_out = '(1A15, 1I15, 1ES15.3)'
 !     integer (I4B), intent(in) :: l 
-!     real    (RDP) :: ka, scka 
+!     real    (RDP) :: ka, agamma, diff_j, diff_y, tmp1, tmp2 
 
-!     ka   = (2.d0*Mass*Kinet)**0.5d0*ra
-!     scka = ka -dble(l)*pi/2.d0
-!     K(l) = (-sin(scka) +R(l)*ka*cos(scka))/(cos(scka) +R(l)*ka*sin(scka))
+!     ka     = (2.d0*Mass*Kinet)**0.5d0*ra
+!     agamma = 1.d0/R(l) -1.d0
+!     diff_j = (bessel_jn(l -1, ka) -bessel_jn(l +1, ka))/2.d0
+!     diff_y = (bessel_yn(l -1, ka) -bessel_yn(l +1, ka))/2.d0 
+!     tmp1   = ka*diff_j -agamma*bessel_jn(l, ka)
+!     tmp2   = ka*diff_y -agamma*bessel_yn(l, ka)
+!     K(l)   = tmp1/tmp2
 !     write(*, form_out) "K: ", l, K(l)
 ! end subroutine mat_K
 subroutine mat_K(l)
+    use nr, only: sphbes_s
     character(30), parameter  :: form_out = '(1A15, 1I15, 1ES15.3)'
     integer (I4B), intent(in) :: l 
-    real    (RSP) :: ka
-    real    (RDP) :: diff_j, diff_y, tmp1, tmp2 
+    real    (RSP) :: ka, sb_j, sb_y, diff_j, diff_y 
+    real    (RDP) :: agamma, tmp1, tmp2 
 
-    ka     = (2.d0*Mass*Kinet)**0.5d0*ra
-    diff_j = (bessel_j(l -1_i4b, ka) -bessel_j(l +1_i4b, ka))/2.d0
-    diff_y = (bessel_y(l -1_i4b, ka) -bessel_y(l +1_i4b, ka))/2.d0 
-    tmp1   = R(l)*(ka*diff_j +bessel_j(l, ka)) -bessel_j(l, ka)
-    tmp2   = R(l)*(ka*diff_y +bessel_y(l, ka)) -bessel_y(l, ka)
+    ka = (2.d0*Mass*Kinet)**0.5d0*ra
+    call sphbes_s(l, ka, sb_j, sb_y, diff_j, diff_y)
+
+    agamma = 1.d0/R(l) -1.d0
+    tmp1   = ka*diff_j -agamma*sb_j 
+    tmp2   = ka*diff_y -agamma*sb_y 
     K(l)   = tmp1/tmp2
     write(*, form_out) "K: ", l, K(l)
 end subroutine mat_K

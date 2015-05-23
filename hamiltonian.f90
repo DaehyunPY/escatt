@@ -89,20 +89,22 @@ end function Poten
 subroutine PROC_input
     use math_const, only: pi => math_pi
     use unit_const, only: other_e_eV, au_hartree
-    integer (I1B), parameter :: file_input       = 101
+!     integer (I1B), parameter :: file_input       = 101
     character(30), parameter :: form_particle    = '(////, 2(40X, 1F10.4, /), /)'
     character(60), parameter :: form_potential   = '(////, 1(40X, 1I10, /), 12(40X, 1F10.4, /), /)'
     character(60), parameter :: form_calculation = '(////, 1(40X, 1F10.4, /), 2(40X, 1I10, /), /)'
     character(30), parameter :: form_plot        = '(////, 2(40X, 1I10, /), /)'
     real    (RDP), parameter :: eV_to_au         = other_e_ev/au_hartree
 
-    open(file_input, file = "inout/input.d")
-    read(file_input, form_particle)    Mass, Kinet
-    read(file_input, form_potential)   ty, Z, alphab, z0, z1, z2, pH, pdelta, pA, pB, alpha, beta, cutoff
-    read(file_input, form_calculation) ra, N, L 
-    read(file_input, form_plot)        pr, ptheta 
-    close(file_input) 
+!     open(file_input, file = "inout/input.d")
+    read(*, form_particle)    Mass, Kinet
+    read(*, form_potential)   ty, Z, alphab, z0, z1, z2, pH, pdelta, pA, pB, alpha, beta, cutoff
+    read(*, form_calculation) ra, N, L 
+    read(*, form_plot)        pr, ptheta 
+!     close(file_input) 
 
+    if(pr > N) pr = N 
+    Kinet  = Kinet*eV_to_au
     dr     = ra/dble(N) 
     dtheta = pi/dble(ptheta)
     pD     = pH/Z**0.4d0 
